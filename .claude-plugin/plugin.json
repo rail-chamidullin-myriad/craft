@@ -4,5 +4,8 @@
   "description": "Disciplined, spec-driven software development skills: brainstorming, implementation, and feature-state snapshots.",
   "author": {
     "name": "Rail Chamidullin"
-  }
+  },
+  "homepage": "https://github.com/rail-chamidullin-myriad/craft",
+  "repository": "https://github.com/rail-chamidullin-myriad/craft",
+  "keywords": ["spec-driven", "tdd", "brainstorming", "workflow", "skills"]
 }

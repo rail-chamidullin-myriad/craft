@@ -34,35 +34,33 @@ Override the artifact root in your project's `CLAUDE.md` or `CLAUDE.local.md` if
 
 ## Installation
 
-### Option A: marketplace install from a local path (recommended)
-
-From your Claude Code session in the repo:
+Install from this repo via the Claude Code plugin marketplace. In a Claude Code session:
 
 ```
-/plugin marketplace add ./.claude/plugins/craft
+/plugin marketplace add rail-chamidullin-myriad/craft
 /plugin install craft@craft
 ```
 
-The marketplace is named `craft` (see `.claude-plugin/marketplace.json`) and it contains one plugin also named `craft` - hence `craft@craft`. If the marketplace command fails, skip to Option B.
+The marketplace is named `craft` (see `.claude-plugin/marketplace.json`) and publishes one plugin also named `craft` - hence `craft@craft`.
 
-### Option B: symlink into the global plugin cache
-
-```bash
-# Adjust paths to your checkout location.
-ln -s "$(pwd)/.claude/plugins/craft" ~/.claude/plugins/cache/local-craft
-
-# Register in installed_plugins.json (manual edit) or reopen Claude Code
-# and check /plugin list.
-```
-
-### Option C: fork this plugin directory into its own repo
-
-Once you're happy with the skills, split `.claude/plugins/craft/` into its own git repo and install as a normal remote plugin:
+Verify and manage:
 
 ```
-/plugin marketplace add <your-user>/craft-claude-skills
-/plugin install craft
+/plugin list
+/plugin marketplace update craft     # pull newer versions
+/plugin uninstall craft@craft        # remove
 ```
+
+### Local development install
+
+If you're hacking on craft itself, point the marketplace at your local checkout instead. A relative path works fine (resolved from the session's current working directory):
+
+```
+/plugin marketplace add ./craft
+/plugin install craft@craft
+```
+
+Use an absolute path if you're running Claude Code from somewhere other than the parent directory. Re-run `/plugin marketplace update craft` after edits to pick up changes.
 
 ## Why not just use superpowers?
 
