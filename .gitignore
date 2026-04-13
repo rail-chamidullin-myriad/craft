@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Editor state
+.idea/
+.vscode/
+*.swp
+
+# Node build/cache artifacts from the Visual Companion server
+node_modules/
+npm-debug.log*
