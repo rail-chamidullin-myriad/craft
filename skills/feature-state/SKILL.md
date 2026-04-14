@@ -19,31 +19,53 @@ Produce a dated, semantic snapshot of a feature's current state. The snapshot is
 
 This skill is **on-demand**. Other skills (like `craft:implement`) may prompt to invoke it but must not call it automatically.
 
-## Inputs
+## Step 0 — Ask before touching anything
 
-Ask the user for:
+Do not read any file until you have answers to these. Do not skip.
+
+Ask the user:
 1. **Feature slug** (human-chosen, e.g. `assistant-v2`). This becomes the directory name under `docs/craft/features/`.
-2. **Scope** - is this a full re-distillation, or an update to the last state file? Full is safer if more than one spec or implementation has happened since the last state.
+2. **Scope** — full re-distillation, or update to the last state file? Full is safer if more than one spec or implementation session has happened since the last state.
+3. **"I'm going to search the codebase for relevant files first — any areas you want to make sure I include?"**
 
-## The Process
+## Step 1 — Discover files, show, confirm
 
-### 1. Locate existing artifacts
+Search the codebase for files related to the feature slug and its domain. Look across:
+- Backend: service modules, DB models, repositories, API routers, predictors, utilities
+- Frontend: feature components, page files, hooks, REST methods
+- Tests: test files for the above
+- Config/migrations: any schema or config files tied to the feature
 
-- Look in `docs/craft/features/<slug>/`. If it does not exist, this is the first state file.
-- Read the most recent `YYYY-MM-DD-<slug>-state.md` in that directory, if any.
-- Read `overview.md` in that directory, if it exists.
-- Read relevant specs in `docs/craft/specs/` - filter by feature slug or topic keywords. Ask the user to confirm which specs are in scope if ambiguous.
-- Optionally read task logs in `docs/craft/tasks/` for recent session-level context.
-- Read the current code for the feature's key files so the architecture section reflects reality, not stale spec text.
+**Display the found file list to the user.** Then ask:
 
-### 2. Distill, do not summarize
+> "These are the files I found. Are there others I should include? Is there anything missing or any context I should know about before I start reading?"
+
+Wait for confirmation before proceeding. The user is the authority on completeness — do not assume the search result is exhaustive.
+
+## Step 2 — Find specs
+
+Search for design specs and implementation plans related to the feature. Check `CLAUDE.md` for the project's spec location — it may not be `docs/craft/specs/` (e.g. a project may use `docs/superpowers/specs/` and `docs/superpowers/plans/`).
+
+Display the found specs to the user. If more than 3-4 are found, ask which are in scope before reading them all.
+
+Also check `docs/craft/features/<slug>/` for:
+- The most recent `YYYY-MM-DD-<slug>-state.md`, if any
+- `overview.md`, if it exists
+
+## Step 3 — Read: code first, specs second
+
+Read the confirmed implementation files first. Code is the source of truth — specs describe intent, code describes reality.
+
+Then read the relevant specs for context on decisions and rationale that are not visible from the code alone (e.g. why A was chosen over B, what was explicitly deferred).
+
+## Step 4 — Distill, do not summarize
 
 Summaries copy the spec text. Distillation re-states only what still matters today, using current code as the source of truth. Rules:
 - If a spec says "we will do X" and the code now does Y, document Y. Note the divergence only if it was intentional.
 - If a spec raised an open question that has since been answered (in a later spec or in code), record the answer, not the question.
 - Keep architecture description to 2-4 paragraphs. No code dumps.
 
-### 3. Write the new state file
+## Step 5 — Write the new state file
 
 Path: `docs/craft/features/<slug>/YYYY-MM-DD-<slug>-state.md`
 
@@ -75,6 +97,12 @@ One paragraph on what this feature is and why it exists.
 - Stubbed: ...
 - Next session should tackle: ...
 
+## Load This In Next Session
+To get full context without re-reading specs, load:
+- This file
+- features/<slug>/overview.md
+- [2-3 most critical implementation files - the ones a new session would need open to make good decisions]
+
 ## Related Specs
 - specs/YYYY-MM-DD-<topic>-design.md - still relevant: <which parts>
 - specs/YYYY-MM-DD-<topic>-design.md - superseded
@@ -82,17 +110,17 @@ One paragraph on what this feature is and why it exists.
 
 Set `Supersedes:` to the filename of the previous state file (not a full path).
 
-### 4. Do not delete old state files
+## Step 6 — Do not delete old state files
 
 Keep all dated state files for history. The newest one is authoritative. Older ones stay as an audit trail.
 
-### 5. Offer to update `overview.md`
+## Step 7 — Offer to update `overview.md`
 
 After writing the state file, ask:
 
 > Any new canonical decisions to append to `features/<slug>/overview.md`?
 
-`overview.md` is different from a state file. It is a small, stable list of canonical decisions and guidelines that accumulated across brainstorming sessions. It is not dated - it evolves in place. Examples of entries:
+`overview.md` is different from a state file. It is a small, stable list of canonical decisions and guidelines that accumulated across brainstorming sessions. It is not dated — it evolves in place. Examples of entries:
 
 - "Custom Assistant is the main building block. Assistant is a special-case Custom Assistant with no global config."
 - "All new features must gate behind a FeatureFlagName entry."
@@ -119,24 +147,27 @@ Canonical decisions and long-lived guidelines for <feature>. Short, stable, evol
 
 When appending to an existing `overview.md`, append new entries under the right section and add a `History` line. Do NOT rewrite existing entries unless the user explicitly asks.
 
-### 6. Hand off
+## Step 8 — Hand off
 
 Report to the user:
 - Path to the new state file.
 - Whether overview was updated.
-- Suggest: in the next brainstorming session, start by loading the new state file (and overview.md if present) instead of specs.
+- Remind: in the next brainstorming session, load the files listed under "Load This In Next Session" — not the full spec pile.
 
 ## Red Flags
 
 | Thought | Reality |
 |---------|---------|
+| "I know which files matter, I'll read them directly" | No. Search first, show the list, ask the user to confirm before reading. |
+| "The inputs aren't critical, I'll start reading" | No. Ask for slug, scope, and areas to cover before touching any file. |
+| "I found the specs, I'll read them all" | Show the list first. Ask which are in scope if more than 3-4. |
 | "I will just copy the latest spec and call it state" | No. Distill from code + specs, do not summarize a single doc. |
 | "I will update overview.md without asking" | No. Overview is stable. Only append on explicit user confirmation. |
 | "I will delete the old state file" | No. Keep all for history. |
-| "I will write this without reading code" | No. Specs drift. Code is truth. |
+| "I will write this without reading code" | No. Specs drift. Code is truth. Read code before specs. |
 | "The spec had 5 open questions, I will list them all" | Only list ones still open today. Answer the rest from current code. |
 
 ## Integration
 
 - Paired with `craft:implement`, which prompts (does not auto-invoke) this skill at finish.
-- Feeds brainstorming sessions: the user should start by pointing at the newest state file and `overview.md`.
+- Feeds brainstorming sessions: the user should start by loading the files listed in "Load This In Next Session" instead of the full spec pile.
