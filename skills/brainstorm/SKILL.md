@@ -27,21 +27,6 @@ Do NOT jump to implementation from this skill. Implementation happens in a separ
 Do NOT write code, scaffold, or invoke any implementation skill until you have presented a design and the user has approved it. The terminal state of this skill is a written spec plus a handoff note - not implementation.
 </HARD-GATE>
 
-## Checklist
-
-Complete these in order:
-
-1. **Load prior context** - feature state, overview, existing specs (if this is continued work).
-2. **Explore project context** - relevant files, repo conventions, recent commits.
-3. **Offer Visual Companion** (if upcoming questions look visual) - its own message, no other content.
-4. **Ask clarifying questions** - one at a time, understand purpose, constraints, success criteria.
-5. **Propose 2-3 approaches** - with trade-offs and your recommendation.
-6. **Present the design** - in sections scaled to complexity, get approval after each section.
-7. **Self-check the design** - quick inline pass for placeholders, contradictions, ambiguity, scope.
-8. **Write the spec** - save to `docs/craft/specs/YYYY-MM-DD-<topic>-design.md`.
-9. **User reviews the written spec** - ask before handing off.
-10. **Hand off to craft:implement** - suggest implementation in a fresh session.
-
 ## The Process
 
 ### 1. Load prior context (if feature exists)
@@ -84,22 +69,11 @@ Scale each section to its complexity: a few sentences if straightforward, up to 
 
 ### 6. Use the Visual Companion when the answer is visual
 
-A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool, not a mode. Accepting the companion means it is available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
-
-**Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
+If upcoming questions involve visual content (mockups, layouts, diagrams), offer the browser-based companion once as its own message — do not combine with other content:
 
 > "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
 
-**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. Wait for the user's response before continuing. If they decline, proceed with text-only brainstorming.
-
-**Per-question decision:** Even after the user accepts, decide for each question whether to use the browser or the terminal. The test: would the user understand this better by *seeing* it than *reading* it?
-
-- Use the browser for content that IS visual: UI mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs.
-- Use the terminal for content that is text: requirements, conceptual A/B/C picks, tradeoff lists, API design, naming.
-
-A question *about* a UI topic is not automatically a visual question. "What kind of wizard do you want?" is conceptual (terminal). "Which of these wizard layouts feels right?" is visual (browser).
-
-**If the user accepts, read the detailed guide before proceeding:** `visual-companion.md` in this skill directory. It covers starting/stopping the server, writing HTML fragments to `screen_dir`, reading selections from `state_dir/events`, and where mockups persist.
+If accepted, read `visual-companion.md` in this skill directory for the full guide (server lifecycle, HTML fragments, reading selections, mockup persistence). Even after acceptance, decide per question: browser only when the user would understand it better by *seeing* than *reading*. A question about a UI topic is not automatically a visual question — "what kind of wizard do you want?" is conceptual (terminal); "which of these wizard layouts feels right?" is visual (browser).
 
 ### 7. Self-check before writing
 
@@ -112,39 +86,13 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 | Clarity | Requirements ambiguous enough that two readers would build different things |
 | Scope | Spec covers multiple independent subsystems - if so, split before writing |
 | YAGNI | Features the user didn't ask for, or abstractions with no current caller |
+| Simplicity | Would a senior engineer call this overcomplicated? If yes, cut until they wouldn't. |
 
 ### 8. Write the spec
 
 Ensure the target directory exists (`mkdir -p <root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
 
-Write to `docs/craft/specs/YYYY-MM-DD-<topic>-design.md`:
-
-```markdown
-# <Topic> - Design (YYYY-MM-DD)
-
-**Feature slug:** <slug> (if part of a larger feature)
-**Status:** design
-**Replaces:** specs/YYYY-MM-DD-<topic>-design.md (if superseding an earlier spec)
-
-## Context
-Why are we doing this? What problem does it solve? What is the current state?
-
-## Goal
-One paragraph. What does "done" look like?
-
-## Design
-Architecture, key components, interfaces, data flow. Include diagrams if produced via Visual Companion (link or embed screenshots).
-
-## Decisions Made
-- Chose A over B because ...
-- Chose C because ...
-
-## Open Questions
-- Anything not resolved in this session that a later brainstorm or implementation must address.
-
-## Out of Scope
-- What this spec deliberately does NOT cover.
-```
+Write to `docs/craft/specs/YYYY-MM-DD-<topic>-design.md` using the template in `templates/spec.md`.
 
 ### 9. User reviews the written spec
 
@@ -168,15 +116,6 @@ Then report:
 - Path to the new spec file.
 - Any open questions still to resolve.
 - Suggest: the implementation session can read this spec and invoke `craft:implement`.
-
-## Key Principles
-
-- **One question at a time** - don't overwhelm.
-- **Multiple choice preferred** when natural.
-- **YAGNI ruthlessly** - strip unnecessary features.
-- **Explore alternatives** - propose 2-3 approaches before settling.
-- **Incremental validation** - present the design in sections, confirm each.
-- **Be flexible** - go back and clarify when something doesn't fit.
 
 ## Red Flags
 

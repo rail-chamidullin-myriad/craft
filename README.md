@@ -14,6 +14,8 @@ Second, anything non-trivial spans multiple sessions, and by spec five each sess
 
 Everything else - the spec template, the TDD cadence, the Visual Companion - is inspired by Superpowers. The Visual Companion scripts under `skills/brainstorm/scripts/` are vendored directly; see `CREDITS.md`.
 
+The "surgical changes only" rule in `craft:implement` is informed by [Andrej Karpathy's observations on LLM coding](https://x.com/karpathy/status/2015883857489522876) - agents tend to overcomplicate, refactor adjacent code on the way past, drift from existing style, and quietly delete code they don't fully understand. The rule pushes back on all four.
+
 ## Skills
 
 - **`craft:brainstorm`** - Collaborative, spec-driven brainstorming. Loads prior feature state, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Optional browser Visual Companion for UI mockups, diagrams, and visual A/B selection. Produces a dated spec.

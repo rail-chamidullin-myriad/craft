@@ -123,24 +123,11 @@ Present this as a short bullet list, get user confirmation, then proceed.
 - Commit after each task, not at the end. Follow the project's commit conventions if documented in `CLAUDE.md`.
 - Stop and ask when anything changes the picture - missing dependency, failing verification, unclear instruction, code disagreeing with the spec, an API behaving differently than expected, or a new edge case that the design did not account for. Do not guess.
 - Never start implementation on `main` or `master` without explicit consent.
+- **Surgical changes only.** Touch only what the task requires. Do not "improve" adjacent code, comments, or formatting on the way past. Match existing style even if you would write it differently. Remove imports/variables/functions that *your* changes orphaned; leave pre-existing dead code alone unless explicitly asked. Every changed line should trace directly to the user's request - if you cannot justify a hunk by pointing at the task, revert it.
 
 ### 6. When to dispatch a subagent (exception, not default)
 
-Default is main-session execution. Dispatch a subagent only when ALL of the following hold:
-- The task is isolated and well-scoped (one or two files, no cross-cutting changes).
-- The task does not change architecture, public APIs, or shared conventions.
-- The work is mechanical enough that a fresh-context agent can do it correctly.
-
-When dispatching:
-- Provide the full task text and the specific surrounding context. Never tell the subagent to "read the spec" or "figure it out".
-- Require the subagent to ask clarifying questions before implementing if anything is ambiguous.
-- Accept one of four status reports: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, `BLOCKED`. Handle each:
-  - `DONE` - proceed to review.
-  - `DONE_WITH_CONCERNS` - read concerns; address correctness/scope issues before review, note observations and proceed.
-  - `NEEDS_CONTEXT` - supply the missing context and re-dispatch.
-  - `BLOCKED` - reassess: provide more context, or use a more capable model, or break the task smaller, or escalate.
-- Never dispatch two implementation subagents in parallel on overlapping files.
-- Model selection: cheap model for mechanical single-file work, standard for multi-file integration, most capable for judgment calls.
+Default is main-session execution — it has context a fresh agent does not, and course-correction is cheap here. Dispatch a subagent only for isolated, mechanical, single-concern work that does not change architecture or shared conventions. When you do dispatch, read `references/subagent-dispatch.md` for the full protocol (criteria, status-report handling, model selection).
 
 ### 7. Pre-completion self-check (inline, not a document review)
 
@@ -163,33 +150,7 @@ Report status: what changed, what is verified, anything still open.
 
 ### 9. Write task log (always)
 
-Write a dated task log to `docs/craft/tasks/YYYY-MM-DD-<topic>.md` (create the directory with `mkdir -p` if needed). Use the topic slug from the spec filename when available, otherwise ask the user.
-
-Template:
-
-```markdown
-# <Topic> - Implementation Tasks (YYYY-MM-DD)
-
-**Branch:** <branch-name>
-**Mode:** from-spec | from-conversation
-**Spec:** specs/YYYY-MM-DD-<topic>-design.md (or "none - from-conversation mode")
-**Summary:** One or two sentences on what this session accomplished. In from-conversation mode, include the agreed scope from step 1 here so the log is self-contained.
-
-## Completed
-- [x] Task 1 name
-  - Files: path/to/module.<ext>, path/to/other.<ext>
-  - Tests: path/to/module_tests.<ext>
-  - Commit: <sha>
-- [x] Task 2 name ...
-
-## Deferred / Open
-- Item not in scope this session (or "none")
-
-## Verification
-- format + lint - pass
-- type-check - pass (or "n/a")
-- tests - N passed
-```
+Write a dated task log to `docs/craft/tasks/YYYY-MM-DD-<topic>.md` (create the directory with `mkdir -p` if needed) using the template in `templates/task-log.md`. Use the topic slug from the spec filename when available, otherwise ask the user.
 
 Pull task list and commit SHAs from TodoWrite and `git log`. Keep it short - this is a pointer, not an essay.
 
@@ -248,6 +209,8 @@ If the user picks option 2 or 3, or gives custom instructions, follow those and 
 | "Self-review was clean so it is good" | Run the actual verifications (format/lint, type-check, tests). |
 | "I will skip the failing-test step to save time" | No. The failing test proves the test exercises the change. |
 | "One big commit at the end is cleaner" | No. Commit per task. |
+| "I'll clean up this nearby code while I'm here" | No. Surgical changes only. Mention it; don't touch it. |
+| "I'll match my preferred style instead of the existing one" | No. Match the surrounding code, even if you'd write it differently. |
 
 ## Integration
 
