@@ -5,13 +5,15 @@ description: Brainstorm a feature or update and produce a dated design spec. Col
 
 # Brainstorm (craft)
 
-Turn an idea into a fully formed design through natural collaborative dialogue, then write a dated spec. Adapted from `superpowers:brainstorming` with craft-specific paths and handoffs.
+Turn an idea into a fully formed design through natural collaborative dialogue, then write a dated spec.
 
-**Default artifact root:** `docs/craft/` at the repo root. A project's `CLAUDE.md` or `CLAUDE.local.md` may override this (e.g. a personal subdirectory). If overridden, use the override path everywhere this skill writes or reads `docs/craft/`.
+**Default artifact root:** `docs/craft/` at the repo root. A project's `CLAUDE.md` (or equivalent project instructions file) may override this (e.g. a personal subdirectory). If overridden, use the override path everywhere this skill writes or reads `docs/craft/`.
 
 **Announce at start:** "I'm using the craft:brainstorm skill."
 
 **Principles:** DRY. YAGNI. KISS. One question at a time. Recommend, don't lecture.
+
+**Asking questions:** Ask when a decision genuinely needs the user's input - one question per turn, with your recommended answer. Skip anything you can verify from the code, `CLAUDE.md`, or repo conventions. Err on the side of fewer, higher-signal questions; brainstorming is a dialogue, not an interrogation.
 
 ## When to use
 
@@ -54,7 +56,7 @@ Restate what you loaded to the user before proceeding. Ask whether any of it is 
 
 ### 2. Explore the codebase before asking
 
-If a design question can be answered by reading the code, read the code. Don't ask the user things you can verify yourself. Check `.claude/rules/` and `CLAUDE.md` before asking anything that might already be a repo convention.
+If a design question can be answered by reading the code, read the code. Don't ask the user things you can verify yourself. Check the project's `CLAUDE.md` and any project-specific convention files before asking anything that might already be a repo convention.
 
 Before detailed questions, assess scope: if the request spans multiple independent subsystems, flag it and help decompose into sub-projects. Each sub-project gets its own spec later.
 
@@ -82,34 +84,22 @@ Scale each section to its complexity: a few sentences if straightforward, up to 
 
 ### 6. Use the Visual Companion when the answer is visual
 
-Per-question decision: would the user understand this better by *seeing* it than *reading* it?
+A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool, not a mode. Accepting the companion means it is available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
 
-Use browser for:
-- UI mockups, wireframes, layouts, component shapes.
-- Architecture diagrams, data flow, state machines as diagrams.
-- Side-by-side visual comparisons.
+**Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
 
-Use terminal for:
-- Requirements, scope, conceptual A/B/C picks between described approaches.
-- Tradeoff lists, pros/cons tables.
-- API design, data modeling, naming.
+> "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
 
-A question *about* a UI topic isn't automatically a visual question. "What kind of wizard do you want?" is conceptual (terminal). "Which of these wizard layouts feels right?" is visual (browser).
+**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. Wait for the user's response before continuing. If they decline, proceed with text-only brainstorming.
 
-See `visual-companion.md` in this skill directory for the full guide.
+**Per-question decision:** Even after the user accepts, decide for each question whether to use the browser or the terminal. The test: would the user understand this better by *seeing* it than *reading* it?
 
-**Starting the server:**
+- Use the browser for content that IS visual: UI mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs.
+- Use the terminal for content that is text: requirements, conceptual A/B/C picks, tradeoff lists, API design, naming.
 
-```bash
-# From the plugin dir:
-scripts/start-server.sh --project-dir /path/to/project
-```
+A question *about* a UI topic is not automatically a visual question. "What kind of wizard do you want?" is conceptual (terminal). "Which of these wizard layouts feels right?" is visual (browser).
 
-Save `screen_dir` and `state_dir` from the JSON response. Write HTML fragments to `screen_dir`; read user selections from `state_dir/events` on the next turn.
-
-Mockups persist under `<project>/.superpowers/brainstorm/`. Ensure `.superpowers/` is in `.gitignore`.
-
-**Stopping the server:** `scripts/stop-server.sh` at end of session.
+**If the user accepts, read the detailed guide before proceeding:** `visual-companion.md` in this skill directory. It covers starting/stopping the server, writing HTML fragments to `screen_dir`, reading selections from `state_dir/events`, and where mockups persist.
 
 ### 7. Self-check before writing
 
@@ -124,6 +114,8 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 | YAGNI | Features the user didn't ask for, or abstractions with no current caller |
 
 ### 8. Write the spec
+
+Ensure the target directory exists (`mkdir -p <root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
 
 Write to `docs/craft/specs/YYYY-MM-DD-<topic>-design.md`:
 
@@ -196,16 +188,6 @@ Then report:
 | "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
 | "I will open the browser for every question" | No. Visual only when the answer is visual. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
-
-## Upstream Sync
-
-This skill adapts `superpowers:brainstorming`. Scripts in `scripts/` are vendored from the upstream skill. To check for upstream improvements:
-
-```bash
-diff -r ~/.claude/plugins/cache/claude-plugins-official/superpowers/<latest>/skills/brainstorming/ .claude/plugins/craft/skills/brainstorm/
-```
-
-Read the diff; port selectively. Craft-specific conventions (spec path override, state-file preload, handoff to craft:implement instead of writing-plans) must be preserved.
 
 ## Integration
 
