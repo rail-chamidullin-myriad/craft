@@ -1,8 +1,8 @@
-# <Feature Name> - State (YYYY-MM-DD)
+# <Feature Name> - Snapshot (YYYY-MM-DD)
 
 **Status:** WIP | shipping | stable
 **Owner:** <name>
-**Supersedes:** YYYY-MM-DD-<slug>-state.md (or "first state file")
+**Supersedes:** snapshots/YYYY-MM-DD.md (or "first snapshot")
 
 ## Goal
 One paragraph on what this feature is and why it exists.
@@ -29,7 +29,7 @@ To get full context without re-reading specs, load:
 - features/<slug>/overview.md (if it exists)
 - 2-3 most critical implementation files - the ones a new session would need open to make good decisions.
 
-Omit this section entirely on a first state file if there are no meaningful implementation files yet (design-only feature).
+Omit this section entirely on a first snapshot if there are no meaningful implementation files yet (design-only feature).
 
 ## Related Specs
 - specs/YYYY-MM-DD-<topic>-design.md - still relevant: <which parts>

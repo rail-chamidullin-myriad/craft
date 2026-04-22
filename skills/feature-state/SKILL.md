@@ -7,7 +7,7 @@ description: Distill the current state of a feature into a dated snapshot so fut
 
 Produce a dated, semantic snapshot of a feature. The snapshot is a compact, high-signal anchor that a future session loads instead of rereading every spec.
 
-**Memory:** this skill reads specs, task logs, and prior state from craft memory and writes new state snapshots there. Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there (also appears as `<root>` in existing path templates — both mean the same directory).
+**Memory:** this skill reads specs and prior state from craft memory and writes new snapshots there. Path, layout, and invariants are defined in [`../../references/memory.md`](../../references/memory.md). File roles and read/write protocol for `overview.md` and `snapshots/*.md` are defined in [`../../references/feature-files.md`](../../references/feature-files.md). Read both before any memory access. `<memory-root>` refers to the path defined in `memory.md` (also appears as `<root>` in path templates below — same directory).
 
 **Announce at start:** "I'm using the craft:feature-state skill to capture the current state of <feature>."
 
@@ -25,29 +25,29 @@ Template for the first message:
 I'm going to distill the state of <slug> into a dated snapshot. A few inputs to confirm, then I'll proceed:
 
 1. Feature slug: <slug>  ← confirm or correct
-2. Scope: <update mode because features/<slug>/YYYY-MM-DD-<slug>-state.md exists>
-   OR <first-time distillation because no prior state file found>
+2. Scope: <update mode because features/<slug>/snapshots/ has entries>
+   OR <first-time distillation because no prior snapshot found>
    ← override if you want a full re-distillation either way
 3. Files I found referencing this feature: <compact list>
    ← anything missing I should include?
-4. Specs/task logs in scope: <list from <root>/specs/ and <root>/tasks/>
+4. Specs in scope: <list from <root>/specs/>
    ← if more than 3-4, flag which are actually relevant
 
 Reply with corrections or "go ahead".
 ```
 
-**Auto-detect scope:** if `<root>/features/<slug>/YYYY-MM-DD-<slug>-state.md` exists, default to **update mode** — diff what changed since that file (new specs, new task logs, code drift) and revise only the affected sections. Otherwise default to **first-time** distillation. State your choice in the message above; the user can override.
+**Auto-detect scope:** if `<root>/features/<slug>/snapshots/` contains any files, default to **update mode** — diff what changed since the newest snapshot (new specs, new commits since its header date, code drift) and revise only the affected sections. Otherwise default to **first-time** distillation. State your choice in the message above; the user can override.
 
-Wait for the reply before reading heavy content. A state file with invented details is worse than one with a flagged open question.
+Wait for the reply before reading heavy content. A snapshot with invented details is worse than one with a flagged open question.
 
-### 2. Read code first, then specs and task logs
+### 2. Read code first, then specs
 
 Code is the source of truth — specs describe intent, code describes reality. Read confirmed implementation files first, then:
 - `<root>/specs/` — design specs from `craft:brainstorm`.
-- `<root>/tasks/` — dated implementation-session logs from `craft:implement`. Task logs often hold rationale that lives nowhere else; do not skip them.
-- `<root>/features/<slug>/` — most recent state file and `overview.md`.
+- `<root>/features/<slug>/overview.md` (if it exists) plus the newest `<root>/features/<slug>/snapshots/*.md` (if any). See the read protocol in `references/feature-files.md`.
+- `git log --oneline` over the affected paths since the newest snapshot — rationale not in code usually lives in commit bodies.
 
-When you hit an unclear point, **ask**. If code and spec disagree and the reason isn't obvious from git log or task logs, ask which is current. If feature status (WIP / shipping / stable) is ambiguous, ask. Do not guess.
+When you hit an unclear point, **ask**. If code and spec disagree and the reason isn't obvious from git log, ask which is current. If feature status (WIP / shipping / stable) is ambiguous, ask. Do not guess.
 
 ### 3. Distill, don't summarize
 
@@ -56,13 +56,11 @@ Distillation re-states only what still matters today, using current code as the 
 - If a spec raised an open question that has since been answered, record the answer, not the question.
 - Architecture description: 2-4 paragraphs, no code dumps.
 
-### 4. Write the new state file
+### 4. Write the new snapshot
 
-Create the directory with `mkdir -p <root>/features/<slug>/` if needed, then write to `<root>/features/<slug>/YYYY-MM-DD-<slug>-state.md`.
+Follow the write protocol in `references/feature-files.md`: `mkdir -p <root>/features/<slug>/snapshots/`, then write `<root>/features/<slug>/snapshots/YYYY-MM-DD.md` using today's date and the template in [`../../references/templates/snapshot.md`](../../references/templates/snapshot.md). Set `Supersedes:` to the previous snapshot's filename (e.g. `snapshots/2026-04-19.md`), or `"first snapshot"` if none exists.
 
-Use the template in `templates/state-file.md`. Set `Supersedes:` to the previous state file's filename (not full path), or "first state file" if none.
-
-**Keep all dated state files for history.** The newest is authoritative; older ones are an audit trail.
+Never edit or delete an existing snapshot. If a snapshot already exists for today, append a suffix (e.g. `2026-04-22b.md`).
 
 ### 5. Offer to update `overview.md`
 
@@ -70,12 +68,12 @@ Ask:
 
 > Any product, architectural-invariant, or external-constraint decisions worth logging in `features/<slug>/overview.md`?
 
-If yes, read `references/overview-md.md` for the filter rules, bucket definitions, and template, then append. Do not mass-rewrite; only append new entries.
+If yes, read [`../../references/overview.md`](../../references/overview.md) for the filter rules, bucket definitions, and template, then append. Do not mass-rewrite; only append new entries.
 
 ### 6. Hand off
 
 Report:
-- Path to the new state file.
+- Path to the new snapshot.
 - Whether `overview.md` was updated.
 - Reminder: in the next brainstorming session, load the files listed under "Load This In Next Session" — not the full spec pile.
 
@@ -91,7 +89,7 @@ Report:
 | "I'll list all the spec's old open questions" | Only ones still open today. Answer the rest from current code. |
 | "I'll update overview.md without asking" | No. Overview is stable. Only append on explicit yes. |
 | "I'll log function signatures in overview.md" | No. That's code. Overview is product/invariant/constraint only. |
-| "I'll delete the old state file" | No. Keep all for history. |
+| "I'll delete old snapshots" | No. `snapshots/*.md` is the audit trail. |
 
 ## Integration
 

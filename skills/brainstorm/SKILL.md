@@ -23,11 +23,7 @@ Do NOT write code, scaffold, or invoke any implementation skill until you have p
 
 ### 1. Load prior context (if feature exists)
 
-Before asking any design questions:
-- Look in `<memory-root>/features/<slug>/`.
-- If `overview.md` exists, read it in full. These are canonical decisions, do not re-litigate unless the user flags them.
-- If one or more `YYYY-MM-DD-<slug>-state.md` files exist, read the newest only. It is authoritative.
-- Scan `<memory-root>/specs/` for prior specs on this topic. Do NOT read them by default, only reference them if the state file points at an unresolved question.
+Before asking any design questions, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): read `<memory-root>/features/<slug>/overview.md` (if it exists) plus the newest `<memory-root>/features/<slug>/snapshots/*.md` (if any). Do not default-read prior specs in `<memory-root>/specs/` — only open one if the snapshot or overview points at an unresolved question that lives there.
 
 Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
 
@@ -87,7 +83,7 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 
 Ensure the target directory exists (`mkdir -p <memory-root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
 
-Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in `templates/spec.md`.
+Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in [`../../references/templates/spec.md`](../../references/templates/spec.md).
 
 ### 9. Confirm before handoff
 
@@ -120,7 +116,7 @@ Then report:
 |---------|---------|
 | "Let me propose the full design in one message" | No. Sections, with approval between them. |
 | "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
-| "I will skip reading the state file since I just had a session on this" | No. Read it. A new session has no memory. |
+| "I will skip reading the latest snapshot since I just had a session on this" | No. Read it. A new session has no memory. |
 | "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
 | "I will open the browser for every question" | No. Visual only when the answer is visual. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |

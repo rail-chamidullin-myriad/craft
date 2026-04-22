@@ -1,6 +1,6 @@
 # overview.md guidance
 
-`overview.md` is different from a state file. It is a small, stable list of decisions that outlive any given implementation. Not dated — it evolves in place.
+`overview.md` is different from a snapshot. It is a small, stable list of decisions that outlive any given implementation. Not dated — it evolves in place.
 
 ## The filter (one line)
 
@@ -21,7 +21,7 @@ If a future reader could answer this by reading the code, it does NOT belong in 
 - Function names, file paths, signatures, type shapes → read the code.
 - Naming or refactor choices ("renamed X to Y") → git history.
 - Implementation mechanics ("uses a dict keyed by user_id") → code.
-- Session-level "we deferred X" → that's what the dated state file's *Known Gaps* section is for.
+- Session-level "we deferred X" → that's what the latest snapshot's *Known Gaps* section is for.
 - Rejected alternatives, unless the rationale is load-bearing for future decisions.
 
 ## Template (only if creating overview.md fresh)

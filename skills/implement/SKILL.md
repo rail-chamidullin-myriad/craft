@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Execute a feature end-to-end in the current session, without writing an implementation plan file. Use this whenever the user says "implement this", "build X", "let's code this up", "execute the spec", "carry out the design", "do the work", points at a spec file, or asks to ship/deliver something that has been designed. Two modes — from-spec (reads a design spec from craft memory and implements it) or from-conversation (implements directly from the current chat, skipping the spec step when the user already knows exactly what to build). Sets up a git worktree for isolation, uses TodoWrite as the task ledger, follows TDD cadence (failing test → impl → run → commit), writes a dated task log at finish, and optionally prompts to update feature state.
+description: Execute a feature end-to-end in the current session, without writing an implementation plan file. Use this whenever the user says "implement this", "build X", "let's code this up", "execute the spec", "carry out the design", "do the work", points at a spec file, or asks to ship/deliver something that has been designed. Two modes — from-spec (reads a design spec from craft memory and implements it) or from-conversation (implements directly from the current chat, skipping the spec step when the user already knows exactly what to build). Sets up a git worktree for isolation, uses TodoWrite as the task ledger, follows TDD cadence (failing test → impl → run → commit), and optionally prompts to update feature state at finish.
 ---
 
 # Implement (craft)
@@ -16,14 +16,14 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 **from-conversation** (use when the user describes the work inline and skips the spec step):
 - No spec file. The design is whatever has been agreed in the current conversation.
 - Before starting, restate the understood scope in 3-5 bullet points and ask the user to confirm or correct. This replaces the "critical spec review" step.
-- Write a short summary of the agreed scope into the task log at finish (step 8), so the session is still traceable.
+- Include the agreed scope in the final hand-off summary (step 10), so the session is still traceable.
 - If the agreed scope is large enough that it would benefit from a spec, say so and offer to switch to `craft:brainstorm` instead. Proceed only if the user confirms they want to skip the spec.
 
 **Principles:** DRY. YAGNI. KISS. TDD. Frequent commits.
 
 **Asking questions:** Ask when scope, design, or assumptions shift mid-work. Otherwise execute. If code disagrees with the spec, if an API behaves differently than expected, or if a new edge case appears, pause and check - don't guess.
 
-**Memory:** this skill reads specs from craft memory and writes task logs there. Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there.
+**Memory:** this skill reads specs from craft memory. Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there.
 
 **Announce at start:**
 - from-spec: "I'm using the craft:implement skill to execute this spec."
@@ -143,17 +143,11 @@ Run the project's verification commands - the exact shortcuts depend on the proj
 
 Report status: what changed, what is verified, anything still open.
 
-### 9. Write task log (always)
+### 9. Offer feature-state and overview updates (on demand)
 
-Write a dated task log to `<memory-root>/tasks/YYYY-MM-DD-<topic>.md` (create the directory with `mkdir -p` if needed) using the template in `templates/task-log.md`. Use the topic slug from the spec filename when available, otherwise ask the user.
+Ask the user:
 
-Pull task list and commit SHAs from TodoWrite and `git log`. Keep it short - this is a pointer, not an essay.
-
-### 10. Offer feature-state and overview updates (on demand)
-
-After writing the task log, ask the user:
-
-> Update feature state? This writes a dated snapshot to `features/<feature>/YYYY-MM-DD-<slug>-state.md` via the craft:feature-state skill.
+> Update feature state? This writes a new `features/<feature>/snapshots/YYYY-MM-DD.md` via the craft:feature-state skill.
 
 If yes, invoke `craft:feature-state`. If no, skip.
 
@@ -163,13 +157,13 @@ Then ask:
 
 If yes, append to the overview file. If no, skip. Do NOT mass-rewrite overview.md - only append new entries under the appropriate section.
 
-### 11. Worktree hand-off
+### 10. Worktree hand-off
 
 Close the session with a single status line plus neutral next-step options. Do NOT recommend a default - worktree cleanup conventions vary by user, and any built-in default will be wrong for most of them.
 
-Send this as the final message:
+Send this as the final message (substitute `<N>` from `git rev-list --count <branch> ^<base>` and the verification line from step 8):
 
-> "Implementation is complete on `<branch>` at `.worktrees/<branch>`. Commits are already visible from the main checkout.
+> "Implementation is complete on `<branch>` at `.worktrees/<branch>` — `<N>` commits, verification: lint=pass type=pass tests=`<N>` passed. Commits are already visible from the main checkout.
 >
 > What do you want to do next?
 >

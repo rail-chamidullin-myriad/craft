@@ -2,6 +2,27 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.5.0] - 2026-04-22
+
+### Changed (breaking)
+- **Feature state layout simplified to `snapshots/YYYY-MM-DD.md`.** The previous pile of dated `YYYY-MM-DD-<slug>-state.md` files directly under `features/<slug>/` is replaced with a single `snapshots/` directory holding dated, immutable snapshots. **Newest filename wins** — no separate "current" pointer file. (A `state.md` + `snapshots/` variant was considered and rejected: it duplicated the latest snapshot's content at a stable path, adding a second write per update and a drift risk, without enough reader-side benefit to justify it.)
+- **Task logs removed.** `craft:implement` no longer writes a dated task log at finish, and the `tasks/` directory is no longer part of the memory layout. Session traceability is carried by commits + TodoWrite + the (optional) feature-state refresh instead.
+
+### Added
+- `references/feature-files.md` - new shared reference defining the role of `overview.md` and `snapshots/*.md`, the read protocol (load newest snapshot + overview), and the write protocol (append a new snapshot; never edit or delete). Linked from all three SKILL.md files so feature-file handling stays consistent without per-skill duplication.
+
+### Changed
+- `references/overview.md` - moved up from `skills/feature-state/references/overview-md.md` to `references/overview.md` (shorter name; unambiguous since it lives under `references/`). Keeps the guidance + inline template as one file — the template was too small and too specific to justify splitting into its own file.
+- Templates consolidated under `references/templates/`: `spec.md` (was `skills/brainstorm/templates/`) and `snapshot.md` (was `skills/feature-state/templates/`). Cross-links in the brainstorm and feature-state skills updated.
+- `craft:feature-state` - auto-detect and update-mode logic now keys off "any file in `snapshots/`". On update, write a new dated snapshot (no archive-before-overwrite step). Template renamed from `templates/state-file.md` to `templates/snapshot.md`.
+- `craft:brainstorm` step 1 ("load prior context") condensed to a pointer at `references/feature-files.md` — the read-protocol prose now lives in one place instead of being duplicated across skills.
+- `references/memory.md` - layout and invariants updated for the snapshots-only model; file-role and read/write protocol details delegated to `feature-files.md`.
+- README layout block updated to match.
+
+### Removed
+- `skills/implement/templates/task-log.md` - no longer needed.
+- Duplicated "load prior feature context" prose in `brainstorm` step 1 and `feature-state` step 2 (both now reference `feature-files.md`).
+
 ## [0.4.0] - 2026-04-22
 
 ### Changed (breaking)

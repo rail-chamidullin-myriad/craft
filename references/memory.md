@@ -1,6 +1,6 @@
 # Craft Memory — Path, Layout, Invariants
 
-Craft skills share one durable "memory" directory — the long-lived home for design specs, task logs, and feature state. All three skills (`brainstorm`, `implement`, `feature-state`) read and write against this single location. This reference defines where it lives, what goes in it, and the invariants every skill must respect. Read this file once before any memory access in a session so all three skills stay consistent.
+Craft skills share one durable "memory" directory — the long-lived home for design specs and feature state. All three skills (`brainstorm`, `implement`, `feature-state`) read and write against this single location. This reference defines where it lives, what goes in it, and the invariants every skill must respect. Read this file once before any memory access in a session so all three skills stay consistent.
 
 ## Path
 
@@ -17,7 +17,7 @@ $HOME/.claude/projects/<project-slug>/craft/memory/
   PROJECT_SLUG="${PROJECT_ROOT//\//-}"
   MEMORY_ROOT="$HOME/.claude/projects/${PROJECT_SLUG}/craft/memory"
   ```
-- The memory directory may not exist yet. Any skill that writes to memory must `mkdir -p` the target subdirectory (`specs/`, `tasks/`, `features/<slug>/`) before writing.
+- The memory directory may not exist yet. Any skill that writes to memory must `mkdir -p` the target subdirectory (`specs/`, `features/<slug>/snapshots/`) before writing.
 
 ## Why outside the working tree
 
@@ -33,22 +33,21 @@ Memory deliberately lives outside the git working tree. Three reasons:
 <memory-root>/
 ├── specs/                                  # dated design specs from craft:brainstorm
 │   └── YYYY-MM-DD-<topic>-design.md        # immutable; never edit in place
-├── tasks/                                  # dated session logs from craft:implement
-│   └── YYYY-MM-DD-<topic>.md               # one per implementation session
 └── features/<slug>/                        # per-feature distilled state
     ├── overview.md                         # stable, append-only canonical decisions
-    └── YYYY-MM-DD-<slug>-state.md          # dated snapshots; newest is authoritative
+    └── snapshots/                          # dated state snapshots; newest by filename wins
+        └── YYYY-MM-DD.md                   # immutable; each is a point-in-time state
 ```
 
-Throughout all craft SKILL.md files, `<memory-root>` refers to the path above.
+Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. File-level roles, read protocol, and write protocol for `overview.md` and `snapshots/*.md` live in [`feature-files.md`](feature-files.md).
 
 ## Invariants
 
-- **Specs are immutable.** Once written, never edit. If the design changes, write a new spec (and optionally a new feature-state snapshot that supersedes the old one).
-- **State snapshots accumulate.** Dated filenames, newest wins, keep all older ones as an audit trail. Never delete.
+- **Specs are immutable.** Once written, never edit. If the design changes, write a new spec (and optionally a new snapshot).
+- **Snapshots are immutable; newest by filename wins.** Re-distilling writes a new `snapshots/YYYY-MM-DD.md`; never edit or delete older ones.
 - **`overview.md` is append-only.** Stable long-lived canonical decisions. Append only on explicit user confirmation. Never mass-rewrite.
-- **Code is the source of truth.** When a spec or state file disagrees with current code, re-distill via `craft:feature-state` — do not edit the old spec or state file to "fix" it.
-- **Load the newest first.** A new session on an existing feature reads `features/<slug>/overview.md` plus the newest `YYYY-MM-DD-<slug>-state.md` only. Older state files and older specs are for archaeology, not default context.
+- **Code is the source of truth.** When a spec, snapshot, or overview disagrees with current code, re-distill via `craft:feature-state` — do not edit the old file to "fix" it.
+- **Load the latest first.** A new session on an existing feature reads `overview.md` plus the newest `snapshots/*.md`. Older snapshots and older specs are for archaeology, not default context.
 
 ## What NOT to put in memory
 

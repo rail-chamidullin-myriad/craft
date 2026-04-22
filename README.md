@@ -19,12 +19,12 @@ The "surgical changes only" rule in `craft:implement` is informed by [Andrej Kar
 ## Skills
 
 - **`craft:brainstorm`** - Collaborative, spec-driven brainstorming. Loads prior feature state, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Optional browser Visual Companion for UI mockups, diagrams, and visual A/B selection. Produces a dated spec.
-- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk and implement it) or *from-conversation* (implement directly from the current chat, no spec file - for when you already know exactly what to do). Creates a `.worktrees/<branch>/` worktree for isolation (verifies `.worktrees/` is gitignored, runs project setup, confirms a clean test baseline), uses TodoWrite as the task ledger, and follows a TDD cadence (failing test → run → impl → run → commit). Writes a dated task log at finish. Optionally prompts to update feature state and overview.
+- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk and implement it) or *from-conversation* (implement directly from the current chat, no spec file - for when you already know exactly what to do). Creates a `.worktrees/<branch>/` worktree for isolation (verifies `.worktrees/` is gitignored, runs project setup, confirms a clean test baseline), uses TodoWrite as the task ledger, and follows a TDD cadence (failing test → run → impl → run → commit). Optionally prompts to update feature state and overview at finish.
 - **`craft:feature-state`** - Distill a feature's current state into a dated snapshot so future brainstorming sessions can load one file instead of every historical spec.
 
 ## Memory
 
-Craft skills share one durable memory directory — the home for design specs, task logs, and feature state. It lives outside the working tree at:
+Craft skills share one durable memory directory — the home for design specs and feature state. It lives outside the working tree at:
 
 ```
 ~/.claude/projects/<project-slug>/craft/memory/
@@ -37,11 +37,10 @@ Layout:
 ```
 <memory-root>/
 ├── specs/           # dated design specs from brainstorming sessions
-├── tasks/           # dated implementation-session logs
 └── features/<slug>/
-    ├── overview.md              # stable, append-only canonical decisions
-    ├── YYYY-MM-DD-<slug>-state.md      # newest snapshot is authoritative
-    └── YYYY-MM-DD-<slug>-state.md      # older, kept for history
+    ├── overview.md       # stable, append-only canonical decisions
+    └── snapshots/
+        └── YYYY-MM-DD.md # dated state snapshots; newest by filename wins
 ```
 
 **Why outside the working tree:** (1) git worktrees share the memory automatically, since it's not inside any tree; (2) personal brainstorming artifacts never pollute `git status` or PRs; (3) it sits as a sibling to Claude Code's built-in auto-memory (`~/.claude/projects/<slug>/memory/`) — same category, same parent.
@@ -94,7 +93,7 @@ If you already know Superpowers, here's how craft differs:
 | `executing-plans` / `subagent-driven-development` → plan re-read in new session, subagent per task | `craft:implement` (from-spec) → read spec directly, main session loop, TodoWrite ledger |
 | No shortcut for "I know exactly what to do, just implement it" | `craft:implement` (from-conversation) → restate agreed scope inline, confirm, execute; no spec file needed |
 | No feature-state concept | `craft:feature-state` + `features/<slug>/overview.md` to bound context across large multi-spec features |
-| `finishing-a-development-branch` | (skipped - `craft:implement` ends with verify + task log, then a neutral worktree hand-off menu) |
+| `finishing-a-development-branch` | (skipped - `craft:implement` ends with verify, then a neutral worktree hand-off menu) |
 
 Underlying disciplines (one-question-at-a-time, propose 2-3 approaches, present design in sections, TDD cadence, file-structure pre-flight, no-placeholder, spec self-review) trace back to Superpowers. Craft keeps those and drops the paperwork.
 
