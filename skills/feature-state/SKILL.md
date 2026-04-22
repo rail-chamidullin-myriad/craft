@@ -1,23 +1,15 @@
 ---
 name: feature-state
-description: Use on demand to distill the current state of a feature into a dated snapshot file. Consolidates multiple design specs and implementation history into a single reference file that future brainstorming sessions can point to instead of re-reading every spec.
+description: Distill the current state of a feature into a dated snapshot so future sessions can load one anchor file instead of re-reading every historical spec. Use this whenever the user says "snapshot this feature", "update feature state", "capture what we have", "distill the state", "the spec pile is getting noisy", "re-baseline the feature", at the end of an implementation session with meaningful state changes, at the end of a brainstorming session with new canonical decisions, or whenever a compact high-signal anchor for a feature would save re-reading the spec pile next time. On-demand only — other skills may prompt to invoke it but must not call it automatically. Consolidates multiple design specs and implementation history into a single dated reference file and can append canonical decisions to features/<slug>/overview.md.
 ---
 
 # Feature State (craft)
 
 Produce a dated, semantic snapshot of a feature. The snapshot is a compact, high-signal anchor that a future session loads instead of rereading every spec.
 
-**Default artifact root:** `docs/craft/`. A project's `CLAUDE.md` (or equivalent) may override this path.
+**Memory:** this skill reads specs, task logs, and prior state from craft memory and writes new state snapshots there. Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there (also appears as `<root>` in existing path templates — both mean the same directory).
 
 **Announce at start:** "I'm using the craft:feature-state skill to capture the current state of <feature>."
-
-## When to use
-
-- End of an implementation session, when meaningful state has changed.
-- End of a brainstorming session, when new canonical decisions emerged.
-- On demand when the spec pile is noisy and a distilled reference would help.
-
-This skill is **on-demand**. Other skills may prompt to invoke it but must not call it automatically.
 
 ## Process
 

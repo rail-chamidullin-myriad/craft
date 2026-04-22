@@ -21,7 +21,7 @@ Architecture, key components, interfaces, data flow. Include diagrams if produce
 - Chose C because ...
 
 ## Open Questions
-- Anything not resolved in this session that a later brainstorm or implementation must address.
+- Items only the user can decide, or items that genuinely need implementation-time context (you will know more after writing code). Do NOT use this section for anything a grep, file read, or command could answer now - resolve those before writing the spec. If every entry reads "grep for X" or "check if Y exists", you shipped the spec too early. If nothing genuinely open remains, write "None." and move on.
 
 ## Out of Scope
 - What this spec deliberately does NOT cover.

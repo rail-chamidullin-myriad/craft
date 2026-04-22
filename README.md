@@ -22,12 +22,20 @@ The "surgical changes only" rule in `craft:implement` is informed by [Andrej Kar
 - **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk and implement it) or *from-conversation* (implement directly from the current chat, no spec file - for when you already know exactly what to do). Creates a `.worktrees/<branch>/` worktree for isolation (verifies `.worktrees/` is gitignored, runs project setup, confirms a clean test baseline), uses TodoWrite as the task ledger, and follows a TDD cadence (failing test → run → impl → run → commit). Writes a dated task log at finish. Optionally prompts to update feature state and overview.
 - **`craft:feature-state`** - Distill a feature's current state into a dated snapshot so future brainstorming sessions can load one file instead of every historical spec.
 
-## Directory layout
+## Memory
 
-Artifacts default to `docs/craft/` at the repo root:
+Craft skills share one durable memory directory — the home for design specs, task logs, and feature state. It lives outside the working tree at:
 
 ```
-docs/craft/
+~/.claude/projects/<project-slug>/craft/memory/
+```
+
+where `<project-slug>` is the project's absolute path with `/` replaced by `-` (matching Claude Code's native convention for session logs and auto-memory). The path is derived at runtime per project — there is no configuration and no override.
+
+Layout:
+
+```
+<memory-root>/
 ├── specs/           # dated design specs from brainstorming sessions
 ├── tasks/           # dated implementation-session logs
 └── features/<slug>/
@@ -36,7 +44,9 @@ docs/craft/
     └── YYYY-MM-DD-<slug>-state.md      # older, kept for history
 ```
 
-Override the artifact root in your project's `CLAUDE.md` (or equivalent project instructions file) if you want artifacts somewhere else (e.g. a personal subdirectory).
+**Why outside the working tree:** (1) git worktrees share the memory automatically, since it's not inside any tree; (2) personal brainstorming artifacts never pollute `git status` or PRs; (3) it sits as a sibling to Claude Code's built-in auto-memory (`~/.claude/projects/<slug>/memory/`) — same category, same parent.
+
+Full path/layout/invariants spec: [`references/memory.md`](references/memory.md).
 
 Two other directories are created at the repo root and should be gitignored:
 

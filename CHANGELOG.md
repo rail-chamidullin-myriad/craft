@@ -2,6 +2,24 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0] - 2026-04-22
+
+### Changed (breaking)
+- **Memory location moved out of the working tree.** Craft memory (specs, task logs, feature state) now lives at `$HOME/.claude/projects/<project-slug>/craft/memory/` — derived at runtime from the project root. Previously defaulted to `docs/craft/` at the repo root with an optional `CLAUDE.md` override. Motivation: git worktrees each have their own working tree, so in-tree memory doesn't share across worktrees and pollutes `git status`. The new location is a sibling to Claude Code's built-in auto-memory (`~/.claude/projects/<slug>/memory/`), is naturally shared across all worktrees, and never shows up in `git status`.
+- **Override removed.** There is no longer a way to override the memory root. One canonical path, derived the same way for every project. Users who had a craft redirect in their `CLAUDE.md` / `CLAUDE.local.md` should remove it. (YAGNI — the override existed to let users redirect away from `docs/craft/`, which the new default makes unnecessary.)
+- **Migration for existing users:** move the contents of the old in-tree `docs/craft/` (or whatever override you had) to `~/.claude/projects/<project-slug>/craft/memory/`. `<project-slug>` is the absolute repo path with `/` replaced by `-` (same encoding Claude Code uses for session logs).
+
+### Added
+- `references/memory.md` - shared reference defining the memory path, layout, and invariants. All three skills delegate to this single file so path/layout conventions stay consistent.
+
+### Changed
+- `craft:brainstorm` step 9 (post-write) - no longer asks the user to open and review the written spec. The spec is now typically outside the working tree and awkward to browse, and the user already approved each section during step 5. The skill now sends a 3-5 bullet recap of key decisions and asks for corrections instead of a file-review ask.
+- All three SKILL.md descriptions rewritten to include explicit trigger phrases per Claude Code skill-authoring guidance (descriptions drive skill invocation, so concrete trigger contexts help Claude consult the right skill). Moved the body `## When to use` sections into the description and removed them from the body.
+
+### Removed
+- `## When to use` body sections from all three skills (content folded into descriptions per above).
+- All references to "Default artifact root" and CLAUDE.md override in SKILL.md files and README.
+
 ## [0.3.0] - 2026-04-15
 
 ### Changed

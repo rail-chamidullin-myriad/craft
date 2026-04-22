@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Execute a feature in the current session without writing an implementation plan file. Works in two modes - from-spec (read a design spec from disk and implement it) or from-conversation (implement directly from the current chat, skipping the spec step when the user already knows exactly what to build).
+description: Execute a feature end-to-end in the current session, without writing an implementation plan file. Use this whenever the user says "implement this", "build X", "let's code this up", "execute the spec", "carry out the design", "do the work", points at a spec file, or asks to ship/deliver something that has been designed. Two modes — from-spec (reads a design spec from craft memory and implements it) or from-conversation (implements directly from the current chat, skipping the spec step when the user already knows exactly what to build). Sets up a git worktree for isolation, uses TodoWrite as the task ledger, follows TDD cadence (failing test → impl → run → commit), writes a dated task log at finish, and optionally prompts to update feature state.
 ---
 
 # Implement (craft)
@@ -10,7 +10,7 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 ## Modes
 
 **from-spec** (default when the user points at a spec file):
-- A design spec exists on disk, typically in `docs/craft/specs/YYYY-MM-DD-<topic>-design.md`.
+- A design spec exists on disk at `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md`.
 - Read the spec first, then implement.
 
 **from-conversation** (use when the user describes the work inline and skips the spec step):
@@ -23,16 +23,11 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 
 **Asking questions:** Ask when scope, design, or assumptions shift mid-work. Otherwise execute. If code disagrees with the spec, if an API behaves differently than expected, or if a new edge case appears, pause and check - don't guess.
 
-**Default artifact root:** `docs/craft/`. A project's `CLAUDE.md` (or equivalent project instructions file) may override this path. If overridden, use the override everywhere.
+**Memory:** this skill reads specs from craft memory and writes task logs there. Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there.
 
 **Announce at start:**
 - from-spec: "I'm using the craft:implement skill to execute this spec."
 - from-conversation: "I'm using the craft:implement skill in from-conversation mode."
-
-## When to use
-
-- The user has a spec file ready → from-spec mode.
-- The user knows exactly what to build and wants to skip the spec → from-conversation mode.
 
 ## The Process
 
@@ -150,7 +145,7 @@ Report status: what changed, what is verified, anything still open.
 
 ### 9. Write task log (always)
 
-Write a dated task log to `docs/craft/tasks/YYYY-MM-DD-<topic>.md` (create the directory with `mkdir -p` if needed) using the template in `templates/task-log.md`. Use the topic slug from the spec filename when available, otherwise ask the user.
+Write a dated task log to `<memory-root>/tasks/YYYY-MM-DD-<topic>.md` (create the directory with `mkdir -p` if needed) using the template in `templates/task-log.md`. Use the topic slug from the spec filename when available, otherwise ask the user.
 
 Pull task list and commit SHAs from TodoWrite and `git log`. Keep it short - this is a pointer, not an essay.
 

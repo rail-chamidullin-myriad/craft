@@ -1,27 +1,19 @@
 ---
 name: brainstorm
-description: Brainstorm a feature or update and produce a dated design spec. Collaborates with the user through clarifying questions (one at a time), proposes 2-3 approaches, and presents a design for approval before writing the spec. Uses an optional browser-based Visual Companion for UI mockups, diagrams, and visual A/B selection. Writes the spec to docs/craft/specs/.
+description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor — even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement — handoff is to craft:implement in a separate session. Optional browser Visual Companion for UI mockups and visual A/B selection.
 ---
 
 # Brainstorm (craft)
 
 Turn an idea into a fully formed design through natural collaborative dialogue, then write a dated spec.
 
-**Default artifact root:** `docs/craft/` at the repo root. A project's `CLAUDE.md` (or equivalent project instructions file) may override this (e.g. a personal subdirectory). If overridden, use the override path everywhere this skill writes or reads `docs/craft/`.
+**Memory:** this skill reads and writes craft memory (specs, feature state, overview decisions). Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there.
 
 **Announce at start:** "I'm using the craft:brainstorm skill."
 
 **Principles:** DRY. YAGNI. KISS. One question at a time. Recommend, don't lecture.
 
 **Asking questions:** Ask when a decision genuinely needs the user's input - one question per turn, with your recommended answer. Skip anything you can verify from the code, `CLAUDE.md`, or repo conventions. Err on the side of fewer, higher-signal questions; brainstorming is a dialogue, not an interrogation.
-
-## When to use
-
-- Before any non-trivial feature, architecture change, or refactor.
-- When you need to decide between two or more design directions.
-- Triggers: "brainstorm", "let's design X", "help me figure out how to build Y".
-
-Do NOT jump to implementation from this skill. Implementation happens in a separate session via `craft:implement`.
 
 <HARD-GATE>
 Do NOT write code, scaffold, or invoke any implementation skill until you have presented a design and the user has approved it. The terminal state of this skill is a written spec plus a handoff note - not implementation.
@@ -32,16 +24,18 @@ Do NOT write code, scaffold, or invoke any implementation skill until you have p
 ### 1. Load prior context (if feature exists)
 
 Before asking any design questions:
-- Look in `docs/craft/features/<slug>/`.
+- Look in `<memory-root>/features/<slug>/`.
 - If `overview.md` exists, read it in full. These are canonical decisions, do not re-litigate unless the user flags them.
 - If one or more `YYYY-MM-DD-<slug>-state.md` files exist, read the newest only. It is authoritative.
-- Scan `docs/craft/specs/` for prior specs on this topic. Do NOT read them by default, only reference them if the state file points at an unresolved question.
+- Scan `<memory-root>/specs/` for prior specs on this topic. Do NOT read them by default, only reference them if the state file points at an unresolved question.
 
 Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
 
 ### 2. Explore the codebase before asking
 
 If a design question can be answered by reading the code, read the code. Don't ask the user things you can verify yourself. Check the project's `CLAUDE.md` and any project-specific convention files before asking anything that might already be a repo convention.
+
+This discipline applies not only to clarifying questions to the user but also to items that would otherwise land in Open Questions. If a grep, file read, or command can resolve it, do that now - do not defer to the spec.
 
 Before detailed questions, assess scope: if the request spans multiple independent subsystems, flag it and help decompose into sub-projects. Each sub-project gets its own spec later.
 
@@ -87,20 +81,23 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 | Scope | Spec covers multiple independent subsystems - if so, split before writing |
 | YAGNI | Features the user didn't ask for, or abstractions with no current caller |
 | Simplicity | Would a senior engineer call this overcomplicated? If yes, cut until they wouldn't. |
+| Open Questions discipline | For each entry, ask "can I answer this by reading code or running a grep?" If yes, resolve inline and delete the entry. This section is not a deferral pile. |
 
 ### 8. Write the spec
 
-Ensure the target directory exists (`mkdir -p <root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
+Ensure the target directory exists (`mkdir -p <memory-root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
 
-Write to `docs/craft/specs/YYYY-MM-DD-<topic>-design.md` using the template in `templates/spec.md`.
+Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in `templates/spec.md`.
 
-### 9. User reviews the written spec
+### 9. Confirm before handoff
 
-After writing, ask:
+Do not ask the user to open the file. The spec typically lives outside the working tree (under the configured memory root) and is awkward to browse; more importantly, the user already saw and approved each section during step 5 — the written spec is the record, not a new deliverable for them to review.
 
-> "Spec written to `<path>`. Please review it and let me know if you want any changes before we move to implementation."
+After writing, send a compact recap of the key decisions (3-5 bullets, drawn from what was already agreed) and ask:
 
-Wait. If they request changes, apply them and re-run the self-check. Only proceed once the user approves.
+> "Spec written to `<path>`. Recap above — any corrections before we move to implementation?"
+
+If they request changes, apply them, re-run the self-check, and send a fresh recap. Proceed once they approve.
 
 ### 10. Offer feature-state update and hand off
 
@@ -127,6 +124,7 @@ Then report:
 | "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
 | "I will open the browser for every question" | No. Visual only when the answer is visual. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
+| "I'll note this as an open question and let implementation resolve it" | No. If a grep or file read answers it, run the grep or read the file now. Open Questions is for items only the user can decide or that genuinely need implementation-time context. |
 
 ## Integration
 
