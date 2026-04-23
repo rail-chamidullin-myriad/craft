@@ -45,7 +45,12 @@ Wait for the reply before reading heavy content. A snapshot with invented detail
 Code is the source of truth — specs describe intent, code describes reality. Read confirmed implementation files first, then:
 - `<root>/specs/` — design specs from `craft:brainstorm`.
 - `<root>/features/<slug>/overview.md` (if it exists) plus the newest `<root>/features/<slug>/snapshots/*.md` (if any). See the read protocol in `references/feature-files.md`.
-- `git log --oneline` over the affected paths since the newest snapshot — rationale not in code usually lives in commit bodies.
+- **Branch / merge state — canonical three-command probe.** Run these before diving into commit bodies so you know what is shipped vs. WIP:
+  - `git rev-parse --abbrev-ref HEAD` — current branch.
+  - `git log --oneline <main>..HEAD` — commits ahead of main (WIP / unmerged).
+  - `git log --since="<last-snapshot-date>" --oneline <main> -- <feature-paths>` — commits that landed on main since the previous snapshot.
+  Record the three commands and their output in the snapshot's `Branch / Merge Status` section (see the template). That section is how a future reader tells what shipped vs. what is still on a branch.
+- If `gh pr list` / `gh pr view` is available, add PR numbers and states. Don't block on it — TLS or auth failures are common; fall back to commit messages (PR numbers usually appear in the subject line).
 
 When you hit an unclear point, **ask**. If code and spec disagree and the reason isn't obvious from git log, ask which is current. If feature status (WIP / shipping / stable) is ambiguous, ask. Do not guess.
 

@@ -2,6 +2,12 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.6.0] - 2026-04-23
+
+### Added
+- `craft:feature-state` - canonical three-command branch/merge probe in step 3 (read code + history): `git rev-parse --abbrev-ref HEAD`, `git log --oneline <main>..HEAD`, and `git log --since="<last-snapshot-date>" --oneline <main> -- <feature-paths>`. Gives snapshots a clear shipped-vs-WIP picture before diving into commit bodies. Optional `gh pr list`/`gh pr view` augmentation with explicit fallback guidance so TLS/auth failures don't block the snapshot.
+- `references/templates/snapshot.md` - new **Branch / Merge Status** section capturing the three commands verbatim plus buckets for "Landed on main since <previous-snapshot-date>", "On the active branch", "Still elsewhere / still WIP", and "Implications for this snapshot". Omitted on first snapshots with no prior merge history.
+
 ## [0.5.0] - 2026-04-22
 
 ### Changed (breaking)
