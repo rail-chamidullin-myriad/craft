@@ -59,7 +59,21 @@ When you hit an unclear point, **ask**. If code and spec disagree and the reason
 Distillation re-states only what still matters today, using current code as the source of truth.
 - If a spec said "we will do X" and code now does Y, document Y. Note divergence only if intentional.
 - If a spec raised an open question that has since been answered, record the answer, not the question.
-- Architecture description: 2-4 paragraphs, no code dumps.
+- Architecture description: 1-2 paragraphs MAX, no code dumps.
+
+#### Size budget — caveman rules
+
+A snapshot only earns its keep if loading it is cheaper than reading the code. **Hard cap: snapshot ≤ 8k chars (~2k tokens). Overview ≤ 5k chars.** If you can't fit in budget, you're including code-derivable content - cut it.
+
+Apply these rules ruthlessly:
+
+- **Delta-only after the first snapshot.** Never restate sections that haven't changed since the prior snapshot. Reference the prior snapshot file for unchanged state. No "Carried from X (still true): ..." idiom - ever.
+- **One line per commit** in `Branch / Merge Status`: `<sha> <subject>`. Skip body prose unless the commit shifted an architectural invariant.
+- **Skip unchanged sections** entirely. If `Current Architecture` is the same as last snapshot, the section reads "Unchanged from `snapshots/YYYY-MM-DD.md`." and that's it.
+- **Key Files**: only the files that materially shifted in this snapshot. Cite the prior snapshot for the full inventory.
+- **Decisions / Gaps**: only what's new or has flipped status. Don't reproduce unchanged decisions.
+
+Before writing, check the size of your prior snapshot (`wc -c`). If it grew over budget, your job is to compress, not to add more.
 
 ### 4. Write the new snapshot
 
@@ -95,6 +109,10 @@ Report:
 | "I'll update overview.md without asking" | No. Overview is stable. Only append on explicit yes. |
 | "I'll log function signatures in overview.md" | No. That's code. Overview is product/invariant/constraint only. |
 | "I'll delete old snapshots" | No. `snapshots/*.md` is the audit trail. |
+| "I'll add 'Carried from prior snapshot...' sections so the new one is self-contained" | No. The prior snapshot is one click away. Restating its content doubles tokens for zero new info. |
+| "I'll write 2-3 sentences explaining each commit" | No. One line per commit: sha + subject. Body prose only for commits that shifted an architectural invariant. |
+| "I'll re-list every key file each snapshot" | No. Only files that materially shifted in this snapshot. Cite prior snapshot for the full inventory. |
+| "The snapshot is at 15k chars but it's all useful" | No. Hard cap is 8k. Above that, reading the code is cheaper - which defeats the snapshot's purpose. |
 
 ## Integration
 

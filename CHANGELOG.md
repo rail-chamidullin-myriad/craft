@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.7.0] - 2026-04-28
+
+### Changed
+- **Snapshots are now delta-only after the first one.** `references/templates/snapshot.md` and `skills/feature-state/SKILL.md` rewritten so each new snapshot only documents what changed since the prior snapshot. Sections that haven't moved read "Unchanged from `snapshots/YYYY-MM-DD.md`." instead of restating prior content. `Branch / Merge Status` is one line per commit (`<sha> <subject>`) with body prose only when a commit shifted an architectural invariant. `Key Files` and `Decisions Made` list only what materially shifted; older inventory stays in the prior snapshot.
+- `references/templates/snapshot.md` - `Goal` and `Current Architecture` sections explicitly allow "Unchanged from prior snapshot" as the entire body; `Current Architecture` capped at 1-2 paragraphs (was 2-4); `Related Specs` skipped entirely if nothing moved.
+
+### Added
+- **Hard size budgets** in `references/feature-files.md`, `references/overview.md`, and `skills/feature-state/SKILL.md`: `overview.md` ≤ 5k chars (~1.2k tokens), newest snapshot ≤ 8k chars (~2k tokens). Rationale: a snapshot only earns its keep if loading it is cheaper than reading the code; budgets force compression instead of accumulation. Read protocol now flags over-budget files during the restate step and suggests re-distillation.
+- `references/overview.md` - **one-line-per-invariant format rule** (≤ 200 chars + Source citation). Multi-paragraph explanations and rationale prose belong in a snapshot's `Decisions Made`, not the overview. Append guidance now also instructs proposing deletions of stale entries when the file approaches the 5k cap.
+- `skills/feature-state/SKILL.md` - four new Red Flag rows covering the most common bloat traps: "Carried from prior snapshot…" sections, multi-sentence commit summaries, re-listing every key file each snapshot, and "the snapshot is at 15k chars but it's all useful".
+
 ## [0.6.0] - 2026-04-23
 
 ### Added

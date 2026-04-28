@@ -28,6 +28,13 @@ Any skill starting work on an existing feature (brainstorm, implement, feature-s
 4. Do NOT default-read prior specs in `<memory-root>/specs/`. Only open a spec if the snapshot or overview points at an unresolved question that lives there.
 5. Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
 
+## Size budgets (caveman)
+
+- `overview.md` ≤ 5k chars (~1.2k tokens). Loaded by every session that touches the feature.
+- newest `snapshots/*.md` ≤ 8k chars (~2k tokens). Loaded as the authoritative state.
+
+If a read step finds either over budget, flag it to the user during the restate step. Suggest invoking `craft:feature-state` to re-distill into a tighter snapshot, and/or trimming `overview.md`. A snapshot that approaches the cost of reading the source code defeats its own purpose.
+
 ## Write protocol — new snapshot (feature-state only)
 
 1. `mkdir -p <memory-root>/features/<slug>/snapshots/`.

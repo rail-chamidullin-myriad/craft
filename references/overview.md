@@ -2,9 +2,17 @@
 
 `overview.md` is different from a snapshot. It is a small, stable list of decisions that outlive any given implementation. Not dated — it evolves in place.
 
+**Hard cap: 5k chars (~1.2k tokens).** This file is loaded by every craft session that touches the feature. Bloat here taxes every future load.
+
 ## The filter (one line)
 
 If a future reader could answer this by reading the code, it does NOT belong in `overview.md`.
+
+## Format rule (caveman)
+
+**Each invariant is ONE LINE, ≤ 200 chars, plus a Source citation on the same line or next line.** No multi-paragraph explanations, no "do not do X" warnings, no rationale prose. The invariant statement should be self-evidently load-bearing; if it needs explaining, it belongs in a snapshot's `Decisions Made` section, not here.
+
+The History section: one line per dated session, comma-separated bullet of what was added.
 
 ## Three buckets — only log entries that fit one of these
 
@@ -50,3 +58,5 @@ Long-lived decisions for <feature>. Short, stable, evolves in place. Every entry
 ## Appending to existing overview.md
 
 Put each new entry under the correct bucket and add a `History` line. Do NOT rewrite existing entries unless the user explicitly asks.
+
+When appending, also check whether the file is approaching the 5k-char cap. If yes, look for entries that have become stale (an invariant the codebase no longer follows, a constraint that has been removed) and propose deletions to the user. The file decays into noise if it never sheds entries.

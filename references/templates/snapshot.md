@@ -4,54 +4,68 @@
 **Owner:** <name>
 **Supersedes:** snapshots/YYYY-MM-DD.md (or "first snapshot")
 
+**Hard cap: 8k chars total (~2k tokens). Above that, reading the code is cheaper than loading this file - which defeats the snapshot's purpose.**
+
 ## Goal
-One paragraph on what this feature is and why it exists.
+One short paragraph. Skip if unchanged from prior snapshot - just write "Unchanged from `snapshots/YYYY-MM-DD.md`."
 
 ## Branch / Merge Status
 
-The three commands that produced this map — include them verbatim so the next session can reproduce:
+Run these and record the output. **One line per commit: `<sha> <subject>`. No per-commit prose unless the commit shifted an architectural invariant.**
 - `git rev-parse --abbrev-ref HEAD`
 - `git log --oneline <main>..HEAD`
 - `git log --since="<previous-snapshot-date>" --oneline <main> -- <feature paths>`
 
 ### Landed on main since <previous-snapshot-date>
-- `<sha>` **<PR #>** <title> - one-line summary.
+- `<sha>` <subject>
 
-### On the active branch (`<branch>`, N commits ahead of main)
-- `<sha>` **<subject>** (<date>) - one-line summary.
+### New on the active branch since <previous-snapshot-date>
+- `<sha>` <subject>
 
-### Still elsewhere / still WIP
-- Anything called out in the prior snapshot that hasn't moved (other branches, external PRs). Be explicit about unchanged state.
+Older commits on the branch already appeared in the prior snapshot - do not restate. The reader can `git log` for full history.
 
 ### Implications for this snapshot
-- One or two bullets on how the merge state reshapes the rest of this document: which sections move from WIP to shipped, which pre-wired assumptions still apply, what the next merge/rebase step should be.
+One or two bullets only. Skip the section if there are no implications worth flagging.
 
-Omit this section entirely on a first snapshot with no prior merge history (e.g. design-only features).
+Omit this entire section on a first snapshot with no prior merge history.
 
 ## Current Architecture
-2-4 paragraphs. Describe the shape: main components, how they collaborate, critical boundaries. Pull from code, not from old specs. No code dumps.
+
+**1-2 paragraphs MAX.** Describe ONLY what is new or changed since the prior snapshot. If the architecture is unchanged, the entire section reads "Unchanged from `snapshots/YYYY-MM-DD.md`." and that's it. The first snapshot is the only one where you describe the architecture in full.
+
+No code dumps. No restating prior architecture in different words.
 
 ## Key Files
-- path/to/module.<ext> - responsibility
-- path/to/other.<ext> - responsibility
 
-## Decisions Made (and rationale)
-- Chose A over B because ...
-- Deferred C because ...
+Only files that materially shifted in this snapshot. Cite the prior snapshot for the full inventory.
+
+- path/to/module.<ext> - what shifted
+
+If nothing shifted, write "Unchanged from `snapshots/YYYY-MM-DD.md`." and skip the bullets.
+
+## Decisions Made
+
+Only NEW decisions in this snapshot, with one-sentence rationale each. Do not reproduce unchanged decisions from prior snapshots - they are still in force unless explicitly reversed here.
+
+- Decision X. Why: <one short sentence>.
 
 ## Known Gaps / Open Questions
-- Not yet built: ...
-- Stubbed: ...
-- Next session should tackle: ...
+
+Only NEW or CHANGED gaps. For unchanged gaps, write "See `snapshots/YYYY-MM-DD.md`." Do not reproduce the prior list.
+
+- Gap X.
+- Resolved since prior: ~~old gap~~ (if it shifts state explicitly).
 
 ## Load This In Next Session
-To get full context without re-reading specs, load:
+
+To get full context without re-reading specs:
 - This file
 - features/<slug>/overview.md (if it exists)
-- 2-3 most critical implementation files - the ones a new session would need open to make good decisions.
+- 1-3 critical implementation files
 
-Omit this section entirely on a first snapshot if there are no meaningful implementation files yet (design-only feature).
+Omit this section entirely on a design-only first snapshot.
 
 ## Related Specs
-- specs/YYYY-MM-DD-<topic>-design.md - still relevant: <which parts>
-- specs/YYYY-MM-DD-<topic>-design.md - superseded
+
+Only specs whose status changed. Skip the section if nothing moved.
+- specs/YYYY-MM-DD-<topic>-design.md - <still relevant: which parts | superseded>
