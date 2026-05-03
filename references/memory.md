@@ -17,7 +17,7 @@ $HOME/.claude/projects/<project-slug>/craft/memory/
   PROJECT_SLUG="${PROJECT_ROOT//\//-}"
   MEMORY_ROOT="$HOME/.claude/projects/${PROJECT_SLUG}/craft/memory"
   ```
-- The memory directory may not exist yet. Any skill that writes to memory must `mkdir -p` the target subdirectory (`specs/`, `features/<slug>/snapshots/`) before writing.
+- The memory directory may not exist yet. Any skill that writes to memory must `mkdir -p` the target subdirectory (`specs/`, `features/<slug>/changes/`) before writing.
 
 ## Why outside the working tree
 
@@ -33,21 +33,24 @@ Memory deliberately lives outside the git working tree. Three reasons:
 <memory-root>/
 ├── specs/                                  # dated design specs from craft:brainstorm
 │   └── YYYY-MM-DD-<topic>-design.md        # immutable; never edit in place
-└── features/<slug>/                        # per-feature distilled state
-    ├── overview.md                         # stable, append-only canonical decisions
-    └── snapshots/                          # dated state snapshots; newest by filename wins
-        └── YYYY-MM-DD.md                   # immutable; each is a point-in-time state
+└── features/<slug>/                        # per-feature memory
+    ├── overview.md                         # always loaded; canonical decisions + Recent Changes index
+    ├── changes/                            # leaf files, on-demand load
+    │   └── YYYY-MM-DD-<short-topic>.md     # 1-2 paragraphs; one per memorable implement session
+    └── snapshots/                          # DEPRECATED; do not write to
+        └── YYYY-MM-DD.md                   # legacy reference only; kept for archaeology
 ```
 
-Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. File-level roles, read protocol, and write protocol for `overview.md` and `snapshots/*.md` live in [`feature-files.md`](feature-files.md).
+Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. File-level roles, read protocol, and write protocol for `overview.md` and `changes/*.md` live in [`feature-files.md`](feature-files.md).
 
 ## Invariants
 
-- **Specs are immutable.** Once written, never edit. If the design changes, write a new spec (and optionally a new snapshot).
-- **Snapshots are immutable; newest by filename wins.** Re-distilling writes a new `snapshots/YYYY-MM-DD.md`; never edit or delete older ones.
-- **`overview.md` is append-only.** Stable long-lived canonical decisions. Append only on explicit user confirmation. Never mass-rewrite.
-- **Code is the source of truth.** When a spec, snapshot, or overview disagrees with current code, re-distill via `craft:feature-state` — do not edit the old file to "fix" it.
-- **Load the latest first.** A new session on an existing feature reads `overview.md` plus the newest `snapshots/*.md`. Older snapshots and older specs are for archaeology, not default context.
+- **Specs are immutable.** Once written, never edit. If the design changes, write a new spec.
+- **`overview.md` is mutable with consolidation discipline.** Both `craft:implement` and `craft:feature-state` may add, edit, merge, or remove entries when they spot duplicates or contradictions. Same auto-memory rule: do not write duplicates; update or remove outdated entries.
+- **`changes/*.md` are immutable once written.** New facts go in a new dated file. Same-day collision: append `b`, `c`, etc.
+- **`snapshots/*.md` are deprecated and read-only.** No new snapshots are written. Existing files remain on disk as legacy reference; do not edit, do not delete, do not migrate.
+- **Code is the source of truth.** When `overview.md`, a changes file, or a legacy snapshot disagrees with current code, fix the memory (consolidate via `craft:feature-state` or write a new changes file) - do not "fix" the old file.
+- **Load the anchor first.** A new session on an existing feature reads `overview.md` always; changes files load on demand only when the index entry or current task references one. Legacy `snapshots/` is never default-loaded.
 
 ## What NOT to put in memory
 

@@ -1,56 +1,56 @@
 # Craft
 
-Disciplined, spec-driven software development skills for Claude Code.
+Skills for developing features continuously across sessions, instead of treating each task as a one-off build.
 
-Craft started as a few small edits to Superpowers and turned into its own thing.
+Two main skills carry feature work end to end:
 
-What it keeps: the Superpowers brainstorming flow, which is great - one question at a time, 2-3 approaches with trade-offs, design presented in sections for incremental approval, and a dated spec on disk at the end.
+- **`craft:brainstorm`** turns an idea into a fully formed design through a one-question-at-a-time dialogue, then writes a dated spec on disk.
+- **`craft:implement`** picks up that spec (or the current chat, when the work is small) and ships it with a worktree, a TodoWrite ledger, and TDD cadence.
 
-What it improves:
+What makes them work *continuously* is **feature memory**: a small always-loaded `overview.md` per feature plus per-session leaf files, modeled on Claude Code's auto-memory pattern. Anything non-trivial spans many sessions, and by the fifth one a Claude Code session normally spends real context re-deriving what was already decided. Feature memory means each new brainstorm or implement session starts from one short file instead of the full spec pile - and `craft:implement` keeps that file fresh by writing a short note to it at finish.
 
-First, the Superpowers implementation flow has a lot of steps that take time and consume tokens: design spec → implementation plan → execution. Having an implementation plan on top of a design spec doesn't necessarily produce better results - the plan mostly restates the spec, and the subagent-per-task loop exists to hand work to fresh subagents when most implementation fits better in the main session, where context and course-correction are cheap. Craft drops the plan: TodoWrite carries the task ledger, subagents come in only for isolated mechanical tasks, and the agent is instructed to pause and ask follow-up questions whenever something isn't clear rather than guessing.
-
-Second, anything non-trivial spans multiple sessions, and by spec five each session spends real context re-deriving what was already decided. Craft adds per-feature artifacts: a dated state snapshot and an `overview.md` of canonical decisions. The next session starts from one file instead of the whole spec pile.
-
-Everything else - the spec template, the TDD cadence, the Visual Companion - is inspired by Superpowers. The Visual Companion scripts under `skills/brainstorm/scripts/` are vendored directly; see `CREDITS.md`.
-
-The "surgical changes only" rule in `craft:implement` is informed by [Andrej Karpathy's observations on LLM coding](https://x.com/karpathy/status/2015883857489522876) - agents tend to overcomplicate, refactor adjacent code on the way past, drift from existing style, and quietly delete code they don't fully understand. The rule pushes back on all four.
+A third skill, `craft:feature-state`, compacts the memory on demand when it drifts.
 
 ## Skills
 
-- **`craft:brainstorm`** - Collaborative, spec-driven brainstorming. Loads prior feature state, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Optional browser Visual Companion for UI mockups, diagrams, and visual A/B selection. Produces a dated spec.
-- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk and implement it) or *from-conversation* (implement directly from the current chat, no spec file - for when you already know exactly what to do). Creates a `.worktrees/<branch>/` worktree for isolation (verifies `.worktrees/` is gitignored, runs project setup, confirms a clean test baseline), uses TodoWrite as the task ledger, and follows a TDD cadence (failing test → run → impl → run → commit). Optionally prompts to update feature state and overview at finish.
-- **`craft:feature-state`** - Distill a feature's current state into a dated snapshot so future brainstorming sessions can load one file instead of every historical spec.
+- **`craft:brainstorm`** - Spec-driven design dialogue. Loads prior feature memory, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Optional browser Visual Companion for UI mockups, diagrams, and visual A/B selection. Output: a dated spec.
+- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk) or *from-conversation* (skip the spec when you already know what to build). Sets up a `.worktrees/<branch>/` worktree, bootstraps `features/<slug>/` memory if missing, follows a TDD cadence, and at finish writes a `changes/*.md` leaf and proposes any canonical-decision diffs to `overview.md`.
+- **`craft:feature-state`** - Compact a feature's `overview.md` when it accumulates duplicates, contradictions, or stale entries. On-demand, auto-dream-shaped.
 
-## Memory
+## Feature memory
 
-Craft skills share one durable memory directory — the home for design specs and feature state. It lives outside the working tree at:
+The differentiator. Memory lives outside the working tree at:
 
 ```
 ~/.claude/projects/<project-slug>/craft/memory/
 ```
 
-where `<project-slug>` is the project's absolute path with `/` replaced by `-` (matching Claude Code's native convention for session logs and auto-memory). The path is derived at runtime per project — there is no configuration and no override.
-
-Layout:
+`<project-slug>` is the project's absolute path with `/` replaced by `-` (matching Claude Code's native convention). The path is derived at runtime; no configuration, no override.
 
 ```
 <memory-root>/
-├── specs/           # dated design specs from brainstorming sessions
+├── specs/                                  # dated design specs from brainstorming sessions
 └── features/<slug>/
-    ├── overview.md       # stable, append-only canonical decisions
-    └── snapshots/
-        └── YYYY-MM-DD.md # dated state snapshots; newest by filename wins
+    ├── overview.md                         # always loaded: canonical decisions + Recent Changes index (FIFO@10)
+    └── changes/                            # leaf files, loaded on demand only
+        └── YYYY-MM-DD-<short-topic>.md     # 1-2 paragraphs per memorable implement session
 ```
 
-**Why outside the working tree:** (1) git worktrees share the memory automatically, since it's not inside any tree; (2) personal brainstorming artifacts never pollute `git status` or PRs; (3) it sits as a sibling to Claude Code's built-in auto-memory (`~/.claude/projects/<slug>/memory/`) — same category, same parent.
+`overview.md` is the always-loaded anchor (hard cap 5k chars). It holds long-lived canonical decisions (product/business rules, architectural invariants, external constraints) plus a FIFO index of the 10 most recent changes files. Each `changes/*.md` leaf is 1-2 paragraphs, capped at 2k chars, and only loaded when relevant.
 
-Full path/layout/invariants spec: [`references/memory.md`](references/memory.md).
+Discipline comes from scope: a changes file describes one session's delta, by construction it cannot grow into a full state dump. Compaction is opportunistic - both `craft:implement` (at finish) and `craft:feature-state` (on demand) clean up duplicates and contradictions as they go.
+
+**Why outside the working tree:**
+1. Git worktrees share memory automatically, since it's not inside any tree.
+2. Personal brainstorming artifacts never pollute `git status` or PRs.
+3. It sits as a sibling to Claude Code's built-in auto-memory (`~/.claude/projects/<slug>/memory/`) - same category, same parent.
+
+Full spec: [`references/memory.md`](references/memory.md).
 
 Two other directories are created at the repo root and should be gitignored:
 
 - `.worktrees/` - isolated worktrees created by `craft:implement`.
-- `.craft/brainstorm/` - persistent Visual Companion session data (mockups, state).
+- `.craft/brainstorm/` - persistent Visual Companion session data.
 
 ## Installation
 
@@ -61,9 +61,9 @@ Install from this repo via the Claude Code plugin marketplace. In a Claude Code 
 /plugin install craft@craft
 ```
 
-The marketplace is named `craft` (see `.claude-plugin/marketplace.json`) and publishes one plugin also named `craft` - hence `craft@craft`.
+The marketplace is named `craft` and publishes one plugin also named `craft` - hence `craft@craft`.
 
-Verify and manage:
+Manage:
 
 ```
 /plugin list
@@ -73,33 +73,24 @@ Verify and manage:
 
 ### Local development install
 
-If you're hacking on craft itself, point the marketplace at your local checkout instead. A relative path works fine (resolved from the session's current working directory):
+If you're hacking on craft itself, point the marketplace at your local checkout:
 
 ```
 /plugin marketplace add ./
 /plugin install craft@craft
 ```
 
-Use an absolute path if you're running Claude Code from somewhere other than the parent directory. Re-run `/plugin marketplace update craft` after edits to pick up changes.
+Re-run `/plugin marketplace update craft` after edits to pick up changes.
 
-## Why not just use superpowers?
+## Origin
 
-If you already know Superpowers, here's how craft differs:
+Craft started as a fork of [Superpowers](https://github.com/obra/superpowers) and went its own direction once feature memory became the central concept. The brainstorming flow (one-question-at-a-time, 2-3 approaches with trade-offs, sections-with-approval, dated spec) and the spec template are inherited from Superpowers; the Visual Companion scripts under `skills/brainstorm/scripts/` are vendored directly (see `CREDITS.md`). Implementation diverges - craft drops the separate plan-on-disk artifact in favor of a TodoWrite ledger in the main session loop, and adds the per-feature memory layer that Superpowers does not have.
 
-| Superpowers | Craft |
-|-------------|-------|
-| `brainstorming` → spec on disk | `craft:brainstorm` → spec on disk (same shape; adds feature-state preload and spec self-check; hands off to `craft:implement`) |
-| `writing-plans` → plan file on disk | (skipped entirely) |
-| `executing-plans` / `subagent-driven-development` → plan re-read in new session, subagent per task | `craft:implement` (from-spec) → read spec directly, main session loop, TodoWrite ledger |
-| No shortcut for "I know exactly what to do, just implement it" | `craft:implement` (from-conversation) → restate agreed scope inline, confirm, execute; no spec file needed |
-| No feature-state concept | `craft:feature-state` + `features/<slug>/overview.md` to bound context across large multi-spec features |
-| `finishing-a-development-branch` | (skipped - `craft:implement` ends with verify, then a neutral worktree hand-off menu) |
+The "surgical changes only" rule in `craft:implement` is informed by [Andrej Karpathy's observations on LLM coding](https://x.com/karpathy/status/2015883857489522876).
 
-Underlying disciplines (one-question-at-a-time, propose 2-3 approaches, present design in sections, TDD cadence, file-structure pre-flight, no-placeholder, spec self-review) trace back to Superpowers. Craft keeps those and drops the paperwork.
+### Upstream sync (for maintainers)
 
-## Upstream sync (for maintainers)
-
-Visual Companion scripts in `skills/brainstorm/scripts/` are vendored from `superpowers:brainstorming`. See `CREDITS.md` for full attribution. To check for upstream improvements:
+Visual Companion scripts are vendored from `superpowers:brainstorming`. To check for upstream improvements:
 
 ```bash
 diff -r ~/.claude/plugins/cache/claude-plugins-official/superpowers/<latest>/skills/brainstorming/ ./skills/brainstorm/

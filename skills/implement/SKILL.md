@@ -31,7 +31,7 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 
 ## The Process
 
-### 1. Set up an isolated worktree
+### 1. Set up an isolated worktree (and prepare feature memory)
 
 Before touching any code, set up a git worktree so the implementation is isolated from the current workspace. This prevents accidental contamination of unrelated work, makes it safe to abandon a session, and allows parallel sessions on other branches.
 
@@ -63,7 +63,17 @@ Work entirely inside the worktree for the remainder of the session - all file pa
 
 "Baseline green" means no *pre-existing* failures before this session begins. The red tests you will write in step 4 for upcoming tasks are expected to fail until you implement them - that is the point of the TDD cadence, not a baseline regression.
 
-**Opt-out:** If the user explicitly says "stay in the current workspace" or "no worktree", skip this step and proceed in the current tree. Do NOT silently skip.
+**Opt-out:** If the user explicitly says "stay in the current workspace" or "no worktree", skip the worktree setup and proceed in the current tree. Do NOT silently skip. Also skip the feature-memory bootstrap below - opted-out sessions are quick fixes by definition and do not earn a feature directory.
+
+**Feature-memory bootstrap.** Once the worktree (or current-workspace opt-out, if memory is appropriate anyway) is settled, resolve the feature slug and create `<memory-root>/features/<slug>/` if missing:
+
+1. Derive a candidate slug:
+   - `from-spec`: take the spec topic with the leading date stripped (e.g. `2026-04-15-ai-assistant-tool-calls-feature-1` → `ai-assistant-tool-calls-feature-1`). Then check `<memory-root>/features/` for a near-match by substring or prefix; prefer reusing an existing slug like `ai-assistant` over creating a sibling `ai-assistant-tool-calls-feature-1`.
+   - `from-conversation` + worktree: branch name minus type prefix (`feat/foo-bar` → `foo-bar`).
+   - `from-conversation` + opt-out: skip memory entirely.
+2. If the slug is unambiguous and `<memory-root>/features/<slug>/` does not yet exist, create it with an empty `overview.md` (canonical sections present and empty, no Recent Changes section yet, empty History). State the slug to the user.
+3. If the slug is ambiguous (multiple plausible existing slugs, or candidate could be either a new feature or a sub-feature of an existing one), ask once with options.
+4. If `<memory-root>/features/<slug>/` already exists, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): load `overview.md`. Do not bulk-read `changes/`; load individual leaf files only on demand.
 
 ### 2. Load the design (mode-dependent)
 
@@ -143,19 +153,21 @@ Run the project's verification commands - the exact shortcuts depend on the proj
 
 Report status: what changed, what is verified, anything still open.
 
-### 9. Offer feature-state and overview updates (on demand)
+### 9. Write feature memory at finish
 
-Ask the user:
+This step is mostly automatic. The skill writes a per-session `changes/*.md` (or skips it), updates the `Recent Changes` index in `overview.md`, and proposes any canonical-decision diffs surfaced by the session. The standalone "update feature-state?" prompt is gone - `craft:feature-state` is now invoked only on user request or when the loader trips a budget warning.
 
-> Update feature state? This writes a new `features/<feature>/snapshots/YYYY-MM-DD.md` via the craft:feature-state skill.
+If the session opted out of feature memory in step 1 (`stay in current workspace`), skip this step.
 
-If yes, invoke `craft:feature-state`. If no, skip.
+**1. Decide if the session is memorable.** Ask: would a future reader miss something from `git log` + code alone? If no (typo fix, dep bump, mechanical refactor), state "no memory write - session is recoverable from git log alone" and skip to step 10. The default for routine sessions is no file.
 
-Then ask:
+**2. Draft and write the changes file.** If memorable, draft from session context (TodoWrite log, spec, conversation) keeping under 2k chars. Use the template at [`../../references/templates/changes.md`](../../references/templates/changes.md). Write to `<memory-root>/features/<slug>/changes/YYYY-MM-DD-<short-topic>.md`. Topic comes from the spec, the dominant TodoWrite theme, or the user's own description of the work. Same-day collision: append `b`, `c`, etc. The file is immutable once written.
 
-> Any new canonical decisions to append to `features/<feature>/overview.md`? (e.g., "Custom Assistant is the main building block; Assistant is a special case.")
+**3. Update the Recent Changes index in `overview.md`.** Append the new entry at the top in the format `- YYYY-MM-DD: <short-topic> -> changes/YYYY-MM-DD-<short-topic>.md`. Trim to the last 10 entries. Mechanical, no judgment. Older entries scroll off the index but their files stay on disk as audit trail.
 
-If yes, append to the overview file. If no, skip. Do NOT mass-rewrite overview.md - only append new entries under the appropriate section.
+**4. Propose canonical-decision diffs.** Scan the session for architectural invariants, product/business rules, or external constraints that surfaced. For each candidate, check `overview.md` for duplicates or contradictions per the consolidation discipline in [`../../references/overview.md`](../../references/overview.md). Present the diff to the user as a short list ("appending these 2 lines under Architectural Invariants; replacing this line because it now contradicts the new code"). Apply on yes; add a `History` line for each add or removal. Skip the question entirely if there are no candidates.
+
+**5. Bloat check.** If `overview.md` ends up over 5k chars, flag it and suggest invoking `craft:feature-state` to compact. Do not auto-compact mid-implement.
 
 ### 10. Worktree hand-off
 

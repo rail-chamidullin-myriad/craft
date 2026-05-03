@@ -23,7 +23,7 @@ Do NOT write code, scaffold, or invoke any implementation skill until you have p
 
 ### 1. Load prior context (if feature exists)
 
-Before asking any design questions, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): read `<memory-root>/features/<slug>/overview.md` (if it exists) plus the newest `<memory-root>/features/<slug>/snapshots/*.md` (if any). Do not default-read prior specs in `<memory-root>/specs/` — only open one if the snapshot or overview points at an unresolved question that lives there.
+Before asking any design questions, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): read `<memory-root>/features/<slug>/overview.md` (if it exists). Read `<memory-root>/features/<slug>/changes/*.md` only on demand — when an index entry in `overview.md` or the user's prompt plainly references a recent session. Do not default-read prior specs in `<memory-root>/specs/`, the `changes/` directory in bulk, or legacy `snapshots/*.md` — open one only if `overview.md` or a relevant changes file points at an unresolved question that lives there.
 
 Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
 
@@ -95,15 +95,9 @@ After writing, send a compact recap of the key decisions (3-5 bullets, drawn fro
 
 If they request changes, apply them, re-run the self-check, and send a fresh recap. Proceed once they approve.
 
-### 10. Offer feature-state update and hand off
+### 10. Offer overview update and hand off
 
-Ask:
-
-> Do you want to update the feature state snapshot? This distills current state so the next brainstorming session can start from one file instead of the spec pile.
-
-If yes, invoke `craft:feature-state`. If no, skip.
-
-Also ask whether any decision from this session is canonical enough to append to `overview.md`. Only append on explicit yes.
+Ask whether any decision from this session is canonical enough to append to `<memory-root>/features/<slug>/overview.md` (product/business rule, architectural invariant, or external constraint). Only append on explicit yes; follow the consolidation discipline in [`../../references/overview.md`](../../references/overview.md) - check for duplicates and contradictions before adding.
 
 Then report:
 - Path to the new spec file.
@@ -116,7 +110,7 @@ Then report:
 |---------|---------|
 | "Let me propose the full design in one message" | No. Sections, with approval between them. |
 | "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
-| "I will skip reading the latest snapshot since I just had a session on this" | No. Read it. A new session has no memory. |
+| "I will skip reading overview.md since I just had a session on this" | No. Read it. A new session has no memory. |
 | "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
 | "I will open the browser for every question" | No. Visual only when the answer is visual. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
@@ -124,5 +118,5 @@ Then report:
 
 ## Integration
 
-- Pairs with `craft:implement` (next session reads the spec and implements it).
-- Pairs with `craft:feature-state` (optional finish step to update the state snapshot).
+- Pairs with `craft:implement` (next session reads the spec and implements it; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
+- Pairs with `craft:feature-state` for periodic compaction of `overview.md` when the canonical sections drift or the index needs trimming.

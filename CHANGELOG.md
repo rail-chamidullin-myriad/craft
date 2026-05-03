@@ -2,6 +2,24 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.8.0] - 2026-05-03
+
+### Changed (breaking)
+- **Per-feature memory layout switched from snapshots to `overview.md` + `changes/`.** New layout is one always-loaded `overview.md` (canonical sections + a FIFO@10 `Recent Changes` index) plus per-session leaf files under `changes/YYYY-MM-DD-<short-topic>.md` (1-2 paragraphs, 2k-char cap, loaded on demand). The dated `snapshots/YYYY-MM-DD.md` artifact is deprecated and read-only - no new snapshots are written. Existing snapshot files remain on disk as legacy reference; no migration. Motivation: real-world snapshots had crept to 27k chars (vs. an 8k cap), so users ran `craft:feature-state` rarely and memory drifted. Discipline now comes from scope (a changes file describes one session's delta and cannot grow into a full state dump) instead of a size cap on a panoramic artifact. Modeled on Claude Code auto-memory's index + leaves pattern.
+- **`overview.md` is mutable with consolidation discipline, not append-only.** Both `craft:implement` (at finish) and `craft:feature-state` (during compaction) may add, edit, merge, or remove entries when they spot duplicates or contradictions. Same auto-memory rule: do not write duplicates; update or remove outdated entries. Canonical-section adds and removals each get a `History` line.
+- **`craft:feature-state` reshaped around compaction, not snapshotting.** The skill no longer writes dated `snapshots/*.md`, no longer runs the canonical three-command branch/merge probe, and no longer follows the "delta-only after the first snapshot" ruleset. New responsibilities: consolidate canonical sections in `overview.md`, propose promotions from `changes/*.md` to canonical, trim `Recent Changes` past 10, and flag bloat over the 5k-char cap. Invoked only on user request or when a loader trips a budget warning.
+- **`craft:implement` auto-creates feature memory and writes per-session memory at finish.** New step 1 resolves a feature slug (from spec topic, branch name, or existing-features near-match), creates `<memory-root>/features/<slug>/` with an empty `overview.md` if missing, and asks once when the slug is genuinely ambiguous. Rewritten step 9 decides whether the session is memorable (skip if recoverable from `git log` + code alone), drafts a 1-2 paragraph `changes/*.md` from session context, appends an entry to the `Recent Changes` index (FIFO trim to 10), and proposes any canonical-decision diffs surfaced by the session. The standalone "update feature-state?" prompt is removed.
+
+### Added
+- `references/templates/changes.md` - new per-session leaf template with header (Branch, Spec), `What shipped`, `Gaps left open`, 2k-char hard cap, and immutability rule.
+- `references/overview.md` - new `Recent Changes` section spec (FIFO@10, format `- YYYY-MM-DD: <topic> -> changes/<file>.md`), index budget math (~1.2k for index, ~3.8k for canonical sections under the 5k cap), and the shared mutable-with-consolidation rule used by both `craft:implement` and `craft:feature-state`.
+
+### Removed
+- `references/templates/snapshot.md` - the dated state-snapshot template. New writes use `references/templates/changes.md`; existing `snapshots/*.md` on disk are kept untouched as legacy reference.
+- `craft:feature-state` - the batched first-message protocol (slug + scope + file list + spec list), the canonical three-command branch/merge probe, the `Branch / Merge Status` snapshot section, the "delta-only after the first snapshot" ruleset, and dated-snapshot writes.
+- `craft:implement` - the standalone "update feature-state?" prompt at finish; replaced by automatic `changes/*.md` write + Recent Changes index trim + proposed canonical-decision diff.
+- `craft:brainstorm` - the "newest snapshot" line in the read protocol; the standalone feature-state hand-off prompt at finish (the canonical-decisions append survives).
+
 ## [0.7.0] - 2026-04-28
 
 ### Changed
