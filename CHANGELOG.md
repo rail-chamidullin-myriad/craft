@@ -2,6 +2,14 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.0] - 2026-05-05
+
+### Changed
+- **`craft:brainstorm` now writes feature memory at finish.** Step 10 expanded from "offer overview update and hand off" to a four-part finish: (1) auto-create `<memory-root>/features/<slug>/` with an empty `overview.md` if missing; (2) append a `Recent Changes` index entry pointing at the new spec file (`- YYYY-MM-DD: <topic> -> specs/YYYY-MM-DD-<topic>-design.md`), FIFO trim to 10; (3) propose canonical-decision diffs (unchanged); (4) bloat-flag if `overview.md` exceeds 5k chars and suggest `craft:feature-state`. Brainstorm still does NOT write `changes/*.md` - the spec under `<memory-root>/specs/` is the brainstorm session's record. Motivation: `Recent Changes` was previously implement-only, so brainstorm sessions silently dropped out of the rolling timeline; users had to manually maintain a `History` line to track them. Now `Recent Changes` is a unified per-feature timeline where each entry points at either a spec (brainstorm) or a changes file (implement), with no duplication.
+- **`Recent Changes` index format extended to allow spec-pointing entries.** The index spec in `references/overview.md` and `references/feature-files.md` now documents two valid line formats: brainstorm entries point at `specs/...-design.md`, implement entries point at `changes/...md`. Both share the same FIFO@10 budget. The `changes/*.md` write contract is unchanged - only `craft:implement` writes those files.
+- `references/overview.md` - "Mutable-with-consolidation rule" section retitled and updated to list all three skills (`craft:brainstorm`, `craft:implement`, `craft:feature-state`) as legitimate writers of `overview.md`.
+- `references/feature-files.md` - canonical-section author list and write protocol updated to include `craft:brainstorm` alongside `craft:implement` and `craft:feature-state`.
+
 ## [0.8.0] - 2026-05-03
 
 ### Changed (breaking)

@@ -3,7 +3,7 @@
 `overview.md` is the always-loaded anchor for a feature. It is small, mutable, and has two kinds of content:
 
 1. **Canonical sections** - long-lived decisions (product/business, architectural invariants, external constraints) that outlive any single implementation. Author-only, evolved with consolidation discipline.
-2. **Recent Changes index** - one line per recent memorable implement session, newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:implement`.
+2. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (pointing at a spec file) and `craft:implement` (pointing at a changes file).
 
 Plus optional `Open Questions` and a `History` log of dated additions to the canonical sections.
 
@@ -22,15 +22,17 @@ The `History` section: one line per dated session, comma-separated bullet of wha
 ## Recent Changes section spec
 
 - Newest entry at the top. FIFO trim to the last 10.
-- One line per entry, format: `- YYYY-MM-DD: <short-topic> -> changes/YYYY-MM-DD-<short-topic>.md`
-- Managed mechanically by `craft:implement` at finish: append, trim. No judgment.
-- The leaf files referenced here live in `<memory-root>/features/<slug>/changes/` and load on demand only.
-- Older changes files (older than the 10th most recent) stay on disk as audit trail; they are simply not pointed at from this index.
+- One line per entry. Format depends on the writing skill:
+  - `craft:brainstorm` at finish: `- YYYY-MM-DD: <short-topic> -> specs/YYYY-MM-DD-<short-topic>-design.md`
+  - `craft:implement` at finish: `- YYYY-MM-DD: <short-topic> -> changes/YYYY-MM-DD-<short-topic>.md`
+- Both skills append mechanically: at the top, trim to 10. No judgment.
+- Spec files live under `<memory-root>/specs/`; changes files live under `<memory-root>/features/<slug>/changes/`. Both load on demand only.
+- Older entries (past the 10th most recent) stay on disk as audit trail; they are simply not pointed at from this index.
 - Index budget: 10 lines × ~120 chars = ~1.2k chars. Leaves ~3.8k for canonical sections + history under the overall 5k cap.
 
-## Mutable-with-consolidation rule (shared by both skills)
+## Mutable-with-consolidation rule (shared across skills)
 
-`overview.md` is mutable, not append-only. Both `craft:implement` (at finish) and `craft:feature-state` (during compaction) may add, edit, merge, or remove entries when they spot duplicates or contradictions. The discipline:
+`overview.md` is mutable, not append-only. `craft:brainstorm` (at finish), `craft:implement` (at finish), and `craft:feature-state` (during compaction) may add, edit, merge, or remove entries when they spot duplicates or contradictions. The discipline:
 
 - **Check for duplicates before adding** (paraphrase match, not just exact-string match).
 - **Resolve contradictions.** When a new decision overrides an old one, replace the old line; do not accumulate two contradicting entries.

@@ -95,11 +95,19 @@ After writing, send a compact recap of the key decisions (3-5 bullets, drawn fro
 
 If they request changes, apply them, re-run the self-check, and send a fresh recap. Proceed once they approve.
 
-### 10. Offer overview update and hand off
+### 10. Write feature memory at finish
 
-Ask whether any decision from this session is canonical enough to append to `<memory-root>/features/<slug>/overview.md` (product/business rule, architectural invariant, or external constraint). Only append on explicit yes; follow the consolidation discipline in [`../../references/overview.md`](../../references/overview.md) - check for duplicates and contradictions before adding.
+Mostly automatic. Brainstorm always produces a memorable artefact (the spec), so unlike implement there is no memorability skip — but brainstorm never writes `changes/*.md` (those are implement's territory). The spec file *is* the brainstorm session's record; this step just indexes it and proposes any canonical-decision diffs.
 
-Then report:
+If the feature directory does not exist (e.g. brainstorm on a fresh feature), create `<memory-root>/features/<slug>/` with an empty `overview.md` (canonical sections present and empty, no Recent Changes section yet, empty History). State the slug to the user.
+
+**1. Append the spec to the Recent Changes index in `overview.md`.** Append at the top in the format `- YYYY-MM-DD: <short-topic> -> specs/YYYY-MM-DD-<short-topic>-design.md`. Trim to the last 10 entries. Mechanical, no judgment. Recent Changes entries can point at either a spec (brainstorm) or a changes file (implement); both share the same FIFO@10 index. If the section does not yet exist in this `overview.md`, create it.
+
+**2. Propose canonical-decision diffs.** Scan the session for decisions that fit one of `overview.md`'s three buckets (product/business rules, architectural invariants, external constraints) and apply across multiple surfaces or sessions — not page-specific layout choices. For each candidate, check `overview.md` for duplicates or contradictions per the consolidation discipline in [`../../references/overview.md`](../../references/overview.md). Present the diff to the user as a short list ("appending these 2 lines under Product / Business; replacing this line because it now contradicts the new spec"). Apply on yes; add a `History` line for each add or removal. Skip the question entirely if there are no candidates.
+
+**3. Bloat check.** If `overview.md` ends up over 5k chars, flag it and suggest invoking `craft:feature-state` to compact. Do not auto-compact mid-brainstorm.
+
+**4. Hand off.** Report:
 - Path to the new spec file.
 - Any open questions still to resolve.
 - Suggest: the implementation session can read this spec and invoke `craft:implement`.
@@ -120,3 +128,4 @@ Then report:
 
 - Pairs with `craft:implement` (next session reads the spec and implements it; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
 - Pairs with `craft:feature-state` for periodic compaction of `overview.md` when the canonical sections drift or the index needs trimming.
+- Writes to feature memory at finish (step 10): appends the spec to the `Recent Changes` index in `overview.md` and proposes canonical-decision diffs. Never writes `changes/*.md` - the spec under `<memory-root>/specs/` is the brainstorm session's record.

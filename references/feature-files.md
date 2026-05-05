@@ -10,8 +10,8 @@ Per-feature memory lives under `<memory-root>/features/<slug>/`. The layout itse
 
 Small, mutable, semantically two parts:
 
-1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived decisions that outlive any single implementation. Author-only: skills propose, the user confirms, only `craft:implement` and `craft:feature-state` write here.
-2. **Recent Changes index** - one line per recent memorable implement session, newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:implement` at finish.
+1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived decisions that outlive any single implementation. Author-only: skills propose, the user confirms, `craft:brainstorm`, `craft:implement`, and `craft:feature-state` may write here.
+2. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (entry points at a spec) and `craft:implement` (entry points at a changes file) at finish.
 
 Plus optional `Open Questions` and a `History` log of dated additions to the canonical sections.
 
@@ -53,12 +53,12 @@ If a read step finds `overview.md` over budget, flag it during the restate step 
 
 ## Write protocol — `overview.md`
 
-Mutable with consolidation discipline. Both `craft:implement` (at finish) and `craft:feature-state` (during compaction) may write here. Rules:
+Mutable with consolidation discipline. `craft:brainstorm` (at finish), `craft:implement` (at finish), and `craft:feature-state` (during compaction) may write here. Rules:
 
 - **Check for duplicates before adding** (paraphrase match, not just exact string). Do not write a near-duplicate of an existing entry.
 - **Resolve contradictions.** When a new decision overrides an old one, replace the old line; do not accumulate two contradicting entries.
 - **Consolidate near-duplicates** that drifted into different wordings during prior sessions.
-- **Recent Changes index** is FIFO managed: append the new entry at the top, trim to the last 10.
+- **Recent Changes index** is FIFO managed: append the new entry at the top, trim to the last 10. Brainstorm entries point at a spec file; implement entries point at a changes file.
 - **Canonical sections** (Product / Architectural / External) are author-only: only added, edited, or removed on explicit user confirmation. Adds get a dated `History` line.
 
 Full rules: [`overview.md`](overview.md).
