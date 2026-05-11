@@ -2,6 +2,20 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.10.0] - 2026-05-11
+
+### Changed (breaking)
+- **`overview.md` is canonical constraints + `Recent Changes` index, nothing else.** Dropped `Open Questions`, `Recommended Next Steps`, and `History` from the template and from all three skills' write paths. Rationale: these sections accumulate author-facing TODOs and audit trail that don't help a future Claude session - they only bloat the always-loaded file. Open Questions and TODOs belong in a ticket system; the `History` audit trail is recoverable from `git log overview.md` (if the memory root is versioned) and from the cited spec / changes files. Per-session evolution still lives in `changes/*.md`.
+- **Canonical entries must be constraints, not descriptions.** New format rule in `references/overview.md`: each entry is one atomic fact, ≤ 200 chars including citation, stated as a constraint on future code rather than a description of current code. Added the constraint-vs-description stress test: *"if the implementation flipped tomorrow - different storage, different shape, different module - would this line need rewriting? Yes → it's a description; drop or reword. No → it's a constraint; keep."* Citations are pointers (`Source: specs/<file>.md` or `Source: session YYYY-MM-DD`), not authority — code is the source of truth.
+- **`craft:feature-state` rewritten around a per-line audit.** The skill now walks each canonical entry asking: constraint or description? atomic? ≤ 200 chars? unique? citation healthy? stale against code? — and proposes corrections per line. Also proposes wholesale removal of legacy `Open Questions`, `Recommended Next Steps`, `History`, and `Guidelines` sections (folding any genuine constraints buried in `Guidelines` into `Architectural Invariants` after applying the constraint-vs-description test). Step 1 batched first message now lists which deprecated sections are present so the scope is explicit.
+
+### Changed
+- `craft:brainstorm` step 10 and `craft:implement` step 9 — canonical-decision-diff proposals must pass the constraint-vs-description test before adding. Dropped the "add a `History` line for each add or removal" instruction (the section is gone). Bootstrap step (both skills) no longer creates an empty `History` section.
+- `references/feature-files.md` — role description for `overview.md` updated: nothing other than canonical sections + Recent Changes index belongs in the file; explicit redirects for Open Questions, TODOs, and overview-edit provenance.
+
+### Migration
+- Existing `overview.md` files with `Open Questions`, `Recommended Next Steps`, `History`, or `Guidelines` sections continue to load fine. Running `craft:feature-state` on the feature will propose dropping the deprecated sections wholesale and auditing each canonical entry per the new format rule. No automatic migration.
+
 ## [0.9.0] - 2026-05-05
 
 ### Changed

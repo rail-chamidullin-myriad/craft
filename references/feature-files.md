@@ -10,14 +10,14 @@ Per-feature memory lives under `<memory-root>/features/<slug>/`. The layout itse
 
 Small, mutable, semantically two parts:
 
-1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived decisions that outlive any single implementation. Author-only: skills propose, the user confirms, `craft:brainstorm`, `craft:implement`, and `craft:feature-state` may write here.
+1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived constraints that outlive any single implementation. Each entry is one atomic fact, ≤ 200 chars, stated as a constraint on future code rather than a description of current code. Author-only: skills propose, the user confirms; `craft:brainstorm`, `craft:implement`, and `craft:feature-state` may write here.
 2. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (entry points at a spec) and `craft:implement` (entry points at a changes file) at finish.
 
-Plus optional `Open Questions` and a `History` log of dated additions to the canonical sections.
+Nothing else. No `Open Questions`, no `Recommended Next Steps`, no `History` log - those drift into bloat with no signal for a future Claude session. Open Questions / TODOs belong in a ticket system; provenance of overview edits is recoverable from `git log overview.md` (if the memory root is versioned) and the cited spec / changes files.
 
 Hard cap: **5k chars (~1.2k tokens).** This file is loaded by every craft session on the feature; bloat taxes every future load.
 
-Author rules, three buckets, filter, FIFO@10 spec, mutable-with-consolidation rule, and template: [`overview.md`](overview.md).
+Author rules, three buckets, filter, constraint-vs-description test, FIFO@10 spec, mutable-with-consolidation rule, and template: [`overview.md`](overview.md).
 
 ### `changes/YYYY-MM-DD-<short-topic>.md` — per-session leaf files
 

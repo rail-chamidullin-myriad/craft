@@ -71,7 +71,7 @@ Work entirely inside the worktree for the remainder of the session - all file pa
    - `from-spec`: take the spec topic with the leading date stripped (e.g. `2026-04-15-ai-assistant-tool-calls-feature-1` → `ai-assistant-tool-calls-feature-1`). Then check `<memory-root>/features/` for a near-match by substring or prefix; prefer reusing an existing slug like `ai-assistant` over creating a sibling `ai-assistant-tool-calls-feature-1`.
    - `from-conversation` + worktree: branch name minus type prefix (`feat/foo-bar` → `foo-bar`).
    - `from-conversation` + opt-out: skip memory entirely.
-2. If the slug is unambiguous and `<memory-root>/features/<slug>/` does not yet exist, create it with an empty `overview.md` (canonical sections present and empty, no Recent Changes section yet, empty History). State the slug to the user.
+2. If the slug is unambiguous and `<memory-root>/features/<slug>/` does not yet exist, create it with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet). State the slug to the user.
 3. If the slug is ambiguous (multiple plausible existing slugs, or candidate could be either a new feature or a sub-feature of an existing one), ask once with options.
 4. If `<memory-root>/features/<slug>/` already exists, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): load `overview.md`. Do not bulk-read `changes/`; load individual leaf files only on demand.
 
@@ -165,7 +165,7 @@ If the session opted out of feature memory in step 1 (`stay in current workspace
 
 **3. Update the Recent Changes index in `overview.md`.** Append the new entry at the top in the format `- YYYY-MM-DD: <short-topic> -> changes/YYYY-MM-DD-<short-topic>.md`. Trim to the last 10 entries. Mechanical, no judgment. Older entries scroll off the index but their files stay on disk as audit trail.
 
-**4. Propose canonical-decision diffs.** Scan the session for architectural invariants, product/business rules, or external constraints that surfaced. For each candidate, check `overview.md` for duplicates or contradictions per the consolidation discipline in [`../../references/overview.md`](../../references/overview.md). Present the diff to the user as a short list ("appending these 2 lines under Architectural Invariants; replacing this line because it now contradicts the new code"). Apply on yes; add a `History` line for each add or removal. Skip the question entirely if there are no candidates.
+**4. Propose canonical-decision diffs.** Scan the session for architectural invariants, product/business rules, or external constraints that surfaced. Each candidate must pass the constraint-vs-description test in [`../../references/overview.md`](../../references/overview.md): if the implementation flipped tomorrow, would the line need rewriting? Yes → it's a description; reword to the underlying constraint or skip. Then check `overview.md` for duplicates or contradictions per the consolidation discipline. Present the diff to the user as a short list ("appending these 2 lines under Architectural Invariants; replacing this line because it now contradicts the new code"). Apply on yes. Skip the question entirely if there are no candidates.
 
 **5. Bloat check.** If `overview.md` ends up over 5k chars, flag it and suggest invoking `craft:feature-state` to compact. Do not auto-compact mid-implement.
 
