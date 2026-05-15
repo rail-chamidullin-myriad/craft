@@ -2,7 +2,12 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [0.11.0] - 2026-05-11
+## [0.12.0] - 2026-05-15
+
+### Added
+- **`craft:code-review` skill.** Single-pass code review for a GitHub PR (`/craft:code-review 5567`) or the current branch. Outputs a fixed three-line verdict — `Risk` (low/medium/high), `Code quality` (0-100), and a one-line `Summary` of what the review actually checked — followed only by issues that score ≥ 80 on importance. Risk and quality are scored independently (a clean script in `research/` can be high-quality + low-risk; a messy auth change is messy + high-risk). Skips test fixtures, generated FE types, OpenAPI JSON, and translation files when scoring. In PR mode it offers to post the review as a `gh pr comment` at the end. Designed to be the daily-driver review tool, distinct from the multi-agent reviewers in other plugins that take minutes per run.
+
+
 
 ### Changed
 - **`craft:brainstorm` and `craft:implement` bootstrap `overview.md` when the feature directory exists but the file does not.** Previously only the dir-missing case was handled; a directory containing only legacy `snapshots/` (or a custom layout from an earlier flow) left the session reading nothing - the read protocol skips snapshots by default. New behavior in both skills: when `<memory-root>/features/<slug>/overview.md` is missing, create an empty one and flag any `snapshots/` or non-canonical files to the user. Content is not imported from the snapshot (that's `craft:feature-state`'s job, audited per line); constraints accumulate organically from the new session forward.
