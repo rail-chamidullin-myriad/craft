@@ -99,7 +99,10 @@ If they request changes, apply them, re-run the self-check, and send a fresh rec
 
 Mostly automatic. Brainstorm always produces a memorable artefact (the spec), so unlike implement there is no memorability skip — but brainstorm never writes `changes/*.md` (those are implement's territory). The spec file *is* the brainstorm session's record; this step just indexes it and proposes any canonical-decision diffs.
 
-If the feature directory does not exist (e.g. brainstorm on a fresh feature), create `<memory-root>/features/<slug>/` with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet). State the slug to the user.
+Ensure `overview.md` exists before the indexing/diff steps below:
+
+- **Feature directory does not exist** → create `<memory-root>/features/<slug>/` with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
+- **Directory exists but `overview.md` is missing** (legacy `snapshots/`-only layout, or a custom layout from an earlier flow) → create an empty `overview.md` and flag any `snapshots/` or non-canonical files to the user. Those files aren't auto-loaded under the current read protocol; do not import their content into the new `overview.md`. Constraints accumulate organically from this session forward, or the user can hand-curate from the snapshot if they want.
 
 **1. Append the spec to the Recent Changes index in `overview.md`.** Append at the top in the format `- YYYY-MM-DD: <short-topic> -> specs/YYYY-MM-DD-<short-topic>-design.md`. Trim to the last 10 entries. Mechanical, no judgment. Recent Changes entries can point at either a spec (brainstorm) or a changes file (implement); both share the same FIFO@10 index. If the section does not yet exist in this `overview.md`, create it.
 

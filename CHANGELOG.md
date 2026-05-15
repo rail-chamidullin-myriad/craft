@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.11.0] - 2026-05-11
+
+### Changed
+- **`craft:brainstorm` and `craft:implement` bootstrap `overview.md` when the feature directory exists but the file does not.** Previously only the dir-missing case was handled; a directory containing only legacy `snapshots/` (or a custom layout from an earlier flow) left the session reading nothing - the read protocol skips snapshots by default. New behavior in both skills: when `<memory-root>/features/<slug>/overview.md` is missing, create an empty one and flag any `snapshots/` or non-canonical files to the user. Content is not imported from the snapshot (that's `craft:feature-state`'s job, audited per line); constraints accumulate organically from the new session forward.
+
 ## [0.10.0] - 2026-05-11
 
 ### Changed (breaking)

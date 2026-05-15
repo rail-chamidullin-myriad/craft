@@ -71,9 +71,11 @@ Work entirely inside the worktree for the remainder of the session - all file pa
    - `from-spec`: take the spec topic with the leading date stripped (e.g. `2026-04-15-ai-assistant-tool-calls-feature-1` → `ai-assistant-tool-calls-feature-1`). Then check `<memory-root>/features/` for a near-match by substring or prefix; prefer reusing an existing slug like `ai-assistant` over creating a sibling `ai-assistant-tool-calls-feature-1`.
    - `from-conversation` + worktree: branch name minus type prefix (`feat/foo-bar` → `foo-bar`).
    - `from-conversation` + opt-out: skip memory entirely.
-2. If the slug is unambiguous and `<memory-root>/features/<slug>/` does not yet exist, create it with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet). State the slug to the user.
-3. If the slug is ambiguous (multiple plausible existing slugs, or candidate could be either a new feature or a sub-feature of an existing one), ask once with options.
-4. If `<memory-root>/features/<slug>/` already exists, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): load `overview.md`. Do not bulk-read `changes/`; load individual leaf files only on demand.
+2. If the slug is ambiguous (multiple plausible existing slugs, or candidate could be either a new feature or a sub-feature of an existing one), ask once with options.
+3. Ensure `overview.md` exists for the resolved slug:
+   - **Feature directory does not exist** → create `<memory-root>/features/<slug>/` with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
+   - **Directory exists but `overview.md` is missing** (legacy `snapshots/`-only layout, or a custom layout from an earlier flow) → create an empty `overview.md` and flag any `snapshots/` or non-canonical files to the user. Those files aren't auto-loaded under the current read protocol; do not import their content into the new `overview.md`. Constraints accumulate organically from this session forward, or the user can hand-curate from the snapshot if they want.
+4. Follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): load `overview.md`. Do not bulk-read `changes/`; load individual leaf files only on demand.
 
 ### 2. Load the design (mode-dependent)
 
