@@ -30,6 +30,15 @@ Fetch sources:
 
 If the diff is large, page through it rather than truncating — every file matters for the risk score, but you do NOT need to deep-read fixtures, generated code (`*.gen.ts`, OpenAPI JSON), translation JSON, large HTML test fixtures, or lockfile changes. Scan their existence so the risk score reflects them, but don't quote them.
 
+### Fetch rules — no local artifacts
+
+Every fetch is read-only against the remote. Nothing should land in the working tree or in `git branch` for the user to clean up after.
+
+- PR mode: only `gh pr view <num>`, `gh pr diff <num>`, and `gh api` calls. For full-file context at the PR's head, use `gh api repos/{owner}/{repo}/contents/<path>?ref=<sha>` or `gh pr view <num> --json files`.
+- Branch mode: only `git log` and `git diff` against `master`. Do not switch branches or create new ones.
+- Forbidden — these all create artifacts: `gh pr checkout`, `git fetch origin pull/<num>/head`, `git switch -c`, `git checkout -b`, `git worktree add`.
+- Red flag: if you find yourself wanting to "just check out the PR to read a file," stop and use `gh api` instead.
+
 ## What to check
 
 Two passes over the diff, in order:

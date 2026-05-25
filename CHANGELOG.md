@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.13.0] - 2026-05-25
+
+### Changed
+- **`craft:code-review` is strictly read-only against the remote — no local artifacts.** New "Fetch rules — no local artifacts" section in `skills/code-review/SKILL.md` constrains fetch to `gh pr view`, `gh pr diff`, `gh api` (PR mode) and `git log` / `git diff` against `master` (branch mode). Forbids `gh pr checkout`, `git fetch origin pull/<num>/head`, `git switch -c`, `git checkout -b`, and `git worktree add` — all of which leave branches or worktrees behind for the user to clean up. For full-file context at PR head, use `gh api repos/{owner}/{repo}/contents/<path>?ref=<sha>` instead of checking the branch out.
+
 ## [0.12.0] - 2026-05-15
 
 ### Added
