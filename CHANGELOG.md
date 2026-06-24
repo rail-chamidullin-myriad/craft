@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.14.0] - 2026-06-23
+
+### Changed
+- **`craft:brainstorm` shows visuals as Artifacts.** Step 6 writes a self-contained mockup to `.craft/brainstorm/` and publishes it with the `Artifact` tool to a `claude.ai` URL — one tool call, no server lifecycle, and a persistent shareable link that doubles as the approved-design reference. The new `skills/brainstorm/artifacts.md` guide covers the loop (apply `artifact-design`, write the HTML, publish, iterate on the same URL) and requirements.
+- **The visual channel is gated to rendered visuals only, and shows without an opt-in prompt.** A new `<HARD-GATE>` in step 6 restricts Artifacts to mockups, layouts, and diagrams; words (scope, tradeoffs, prose A/B/C, clarifying questions) stay in the terminal — a page of text bullets is never published. When a question clears the gate, the visual is shown directly with no "want to try the browser?" preamble.
+
+### Removed
+- **The local Visual Companion server.** `skills/brainstorm/visual-companion.md` and the vendored `skills/brainstorm/scripts/` (`server.cjs`, `frame-template.html`, `helper.js`, `start-server.sh`, `stop-server.sh`) are gone. Artifacts replace it with no server lifecycle to manage.
+
 ## [0.13.0] - 2026-05-25
 
 ### Changed

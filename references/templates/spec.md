@@ -14,7 +14,7 @@ One paragraph. What does "done" look like?
 Verifiable checks that prove the design was implemented correctly. Each item should be something an implementer (or test) can confirm - not vague aspirations. Examples: "endpoint returns 404 for unknown IDs", "page loads in under 200ms on dev hardware", "feature flag X gates the new path". Implementation verifies against this list.
 
 ## Design
-Architecture, key components, interfaces, data flow. Include diagrams if produced via Visual Companion (link or embed screenshots).
+Architecture, key components, interfaces, data flow. Link any mockups or diagrams published as Artifacts during brainstorming.
 
 ## Decisions Made
 - Chose A over B because ...

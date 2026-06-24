@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor — even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement — handoff is to craft:implement in a separate session. Optional browser Visual Companion for UI mockups and visual A/B selection.
+description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor — even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement — handoff is to craft:implement in a separate session. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
 ---
 
 # Brainstorm (craft)
@@ -57,13 +57,15 @@ Scale each section to its complexity: a few sentences if straightforward, up to 
 
 **In existing codebases:** follow existing patterns. Include targeted cleanup only where it serves the current goal, no unrelated refactoring.
 
-### 6. Use the Visual Companion when the answer is visual
+### 6. Show visuals as Artifacts when the answer is visual
 
-If upcoming questions involve visual content (mockups, layouts, diagrams), offer the browser-based companion once as its own message — do not combine with other content:
+<HARD-GATE>
+The visual channel is for **rendered visuals only** — mockups, wireframes, layouts, navigation structures, architecture diagrams, side-by-side design comparisons. If the answer is words — scope, tradeoffs, an approach A/B/C described in prose, any clarifying question — ask in the terminal. Never publish a page whose content is a list of text bullets; that is the terminal's job and an Artifact full of text options is worse than asking directly.
 
-> "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
+A question *about* a UI topic is not automatically visual. The test is whether the user understands it better by **seeing** than **reading**: "what kind of wizard do you want?" is words (terminal); "which of these three wizard layouts feels right?" is visual (Artifact).
+</HARD-GATE>
 
-If accepted, read `visual-companion.md` in this skill directory for the full guide (server lifecycle, HTML fragments, reading selections, mockup persistence). Even after acceptance, decide per question: browser only when the user would understand it better by *seeing* than *reading*. A question about a UI topic is not automatically a visual question — "what kind of wizard do you want?" is conceptual (terminal); "which of these wizard layouts feels right?" is visual (browser).
+When a question clears that gate, just show it — no opt-in ceremony, no "want to try the browser?" preamble. Read `artifacts.md` in this skill directory for the full mechanics (writing the HTML, publishing, iterating on the same URL, applying the `artifact-design` skill for mockup quality). In short: write a self-contained mockup to `<project>/.craft/brainstorm/`, publish it with the `Artifact` tool, link the URL, and have the user respond in the terminal. The URL persists, so it doubles as the approved-design reference a reviewer can open later.
 
 ### 7. Self-check before writing
 
@@ -81,7 +83,7 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 
 ### 8. Write the spec
 
-Ensure the target directory exists (`mkdir -p <memory-root>/specs/`). If you used the Visual Companion this session, also ensure `.craft/` is in `.gitignore` - mockups persist under `<project>/.craft/brainstorm/` and should not be tracked.
+Ensure the target directory exists (`mkdir -p <memory-root>/specs/`). If you published any Artifacts this session, also ensure `.craft/` is in `.gitignore` - the mockup HTML persists under `<project>/.craft/brainstorm/` and should not be tracked.
 
 Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in [`../../references/templates/spec.md`](../../references/templates/spec.md).
 
@@ -123,7 +125,7 @@ Ensure `overview.md` exists before the indexing/diff steps below:
 | "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
 | "I will skip reading overview.md since I just had a session on this" | No. Read it. A new session has no memory. |
 | "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
-| "I will open the browser for every question" | No. Visual only when the answer is visual. |
+| "I'll publish an Artifact for this question" | Only if the content is a rendered visual. A page of text options is worse than asking in the terminal. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
 | "I'll note this as an open question and let implementation resolve it" | No. If a grep or file read answers it, run the grep or read the file now. Open Questions is for items only the user can decide or that genuinely need implementation-time context. |
 

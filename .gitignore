@@ -6,6 +6,6 @@
 .vscode/
 *.swp
 
-# Node build/cache artifacts from the Visual Companion server
+# Node build/cache artifacts
 node_modules/
 npm-debug.log*

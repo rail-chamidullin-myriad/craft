@@ -13,7 +13,7 @@ A third skill, `craft:feature-state`, compacts the memory on demand when it drif
 
 ## Skills
 
-- **`craft:brainstorm`** - Spec-driven design dialogue. Loads prior feature memory, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Optional browser Visual Companion for UI mockups, diagrams, and visual A/B selection. Output: a dated spec.
+- **`craft:brainstorm`** - Spec-driven design dialogue. Loads prior feature memory, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Publishes Artifacts (hosted on claude.ai) for UI mockups, diagrams, and visual A/B selection. Output: a dated spec.
 - **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk) or *from-conversation* (skip the spec when you already know what to build). Sets up a `.worktrees/<branch>/` worktree, bootstraps `features/<slug>/` memory if missing, follows a TDD cadence, and at finish writes a `changes/*.md` leaf and proposes any canonical-decision diffs to `overview.md`.
 - **`craft:feature-state`** - Compact a feature's `overview.md` when it accumulates duplicates, contradictions, or stale entries. On-demand, auto-dream-shaped.
 
@@ -50,7 +50,7 @@ Full spec: [`references/memory.md`](references/memory.md).
 Two other directories are created at the repo root and should be gitignored:
 
 - `.worktrees/` - isolated worktrees created by `craft:implement`.
-- `.craft/brainstorm/` - persistent Visual Companion session data.
+- `.craft/brainstorm/` - mockup HTML published as Artifacts during brainstorming.
 
 ## Installation
 
@@ -84,19 +84,9 @@ Re-run `/plugin marketplace update craft` after edits to pick up changes.
 
 ## Origin
 
-Craft started as a fork of [Superpowers](https://github.com/obra/superpowers) and went its own direction once feature memory became the central concept. The brainstorming flow (one-question-at-a-time, 2-3 approaches with trade-offs, sections-with-approval, dated spec) and the spec template are inherited from Superpowers; the Visual Companion scripts under `skills/brainstorm/scripts/` are vendored directly (see `CREDITS.md`). Implementation diverges - craft drops the separate plan-on-disk artifact in favor of a TodoWrite ledger in the main session loop, and adds the per-feature memory layer that Superpowers does not have.
+Craft started as a fork of [Superpowers](https://github.com/obra/superpowers) and went its own direction once feature memory became the central concept. The brainstorming flow (one-question-at-a-time, 2-3 approaches with trade-offs, sections-with-approval, dated spec) and the spec template are inherited from Superpowers (see `CREDITS.md`). Implementation diverges - craft drops the separate plan-on-disk artifact in favor of a TodoWrite ledger in the main session loop, and adds the per-feature memory layer that Superpowers does not have.
 
 The "surgical changes only" rule in `craft:implement` is informed by [Andrej Karpathy's observations on LLM coding](https://x.com/karpathy/status/2015883857489522876).
-
-### Upstream sync (for maintainers)
-
-Visual Companion scripts are vendored from `superpowers:brainstorming`. To check for upstream improvements:
-
-```bash
-diff -r ~/.claude/plugins/cache/claude-plugins-official/superpowers/<latest>/skills/brainstorming/ ./skills/brainstorm/
-```
-
-Read the diff, port selectively.
 
 ## License
 
