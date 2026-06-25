@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.15.0] - 2026-06-25
+
+### Changed
+- **`craft:brainstorm` writes Artifact source HTML to the session scratchpad.** The mockup HTML for an Artifact is a transient input - the published page lives on `claude.ai` independently of the local file - so it belongs in the scratchpad, not a project-local folder. `SKILL.md`, `artifacts.md`, and the README no longer reference `.craft/brainstorm/` or instruct gitignoring `.craft/`.
+
 ## [0.14.0] - 2026-06-23
 
 ### Changed

@@ -25,7 +25,7 @@ Artifacts need a Team/Enterprise plan, a `claude.ai` login (`/login`, not an API
 
 1. **Apply the `artifact-design` skill** before writing the page — it carries the design process and taste guidance that make a mockup look intentional rather than templated.
 
-2. **Write a self-contained HTML file** to `<project>/.craft/brainstorm/` with a semantic name (`layout.html`, `nav-structure.html`, `dashboard-mockup.html`):
+2. **Write a self-contained HTML file** to your session scratchpad directory with a semantic name (`layout.html`, `nav-structure.html`, `dashboard-mockup.html`):
    - Write the page content directly — no `<!DOCTYPE>`, `<html>`, `<head>`, or `<body>` tags; the Artifact wrapper adds those.
    - Set a concise, stable `<title>` — it names the artifact in the gallery and tab.
    - Strict CSP: inline all CSS and JS, embed images as `data:` URIs. No external hosts, fonts, CDNs, or fetch/XHR.
@@ -50,4 +50,4 @@ Artifacts need a Team/Enterprise plan, a `claude.ai` login (`/login`, not an API
 
 ## Persistence
 
-The published URL persists on `claude.ai` under your org (retention is admin-configurable) and is listed in your gallery — it's the durable "approved design" reference a reviewer can open after the session ends. The local HTML under `.craft/brainstorm/` is the editable source for iterating; ensure `.craft/` is gitignored so it doesn't pollute `git status` or PRs.
+The published URL persists on `claude.ai` under your org (retention is admin-configurable) and is listed in your gallery - it's the durable "approved design" reference a reviewer can open after the session ends. The local HTML in the scratchpad is just the editable source for iterating; it lives outside the project and needs no gitignore entry.

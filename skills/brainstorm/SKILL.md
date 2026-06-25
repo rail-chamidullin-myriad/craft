@@ -65,7 +65,7 @@ The visual channel is for **rendered visuals only** — mockups, wireframes, lay
 A question *about* a UI topic is not automatically visual. The test is whether the user understands it better by **seeing** than **reading**: "what kind of wizard do you want?" is words (terminal); "which of these three wizard layouts feels right?" is visual (Artifact).
 </HARD-GATE>
 
-When a question clears that gate, just show it — no opt-in ceremony, no "want to try the browser?" preamble. Read `artifacts.md` in this skill directory for the full mechanics (writing the HTML, publishing, iterating on the same URL, applying the `artifact-design` skill for mockup quality). In short: write a self-contained mockup to `<project>/.craft/brainstorm/`, publish it with the `Artifact` tool, link the URL, and have the user respond in the terminal. The URL persists, so it doubles as the approved-design reference a reviewer can open later.
+When a question clears that gate, just show it — no opt-in ceremony, no "want to try the browser?" preamble. Read `artifacts.md` in this skill directory for the full mechanics (writing the HTML, publishing, iterating on the same URL, applying the `artifact-design` skill for mockup quality). In short: write a self-contained mockup to your session scratchpad, publish it with the `Artifact` tool, link the URL, and have the user respond in the terminal. The URL persists, so it doubles as the approved-design reference a reviewer can open later.
 
 ### 7. Self-check before writing
 
@@ -83,7 +83,7 @@ Before writing the spec, scan for these issues (fix inline, no need to re-review
 
 ### 8. Write the spec
 
-Ensure the target directory exists (`mkdir -p <memory-root>/specs/`). If you published any Artifacts this session, also ensure `.craft/` is in `.gitignore` - the mockup HTML persists under `<project>/.craft/brainstorm/` and should not be tracked.
+Ensure the target directory exists (`mkdir -p <memory-root>/specs/`).
 
 Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in [`../../references/templates/spec.md`](../../references/templates/spec.md).
 

@@ -47,10 +47,9 @@ Discipline comes from scope: a changes file describes one session's delta, by co
 
 Full spec: [`references/memory.md`](references/memory.md).
 
-Two other directories are created at the repo root and should be gitignored:
+One other directory is created at the repo root and should be gitignored:
 
 - `.worktrees/` - isolated worktrees created by `craft:implement`.
-- `.craft/brainstorm/` - mockup HTML published as Artifacts during brainstorming.
 
 ## Installation
 
