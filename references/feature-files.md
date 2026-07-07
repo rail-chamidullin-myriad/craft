@@ -8,10 +8,11 @@ Per-feature memory lives under `<memory-root>/features/<slug>/`. The layout itse
 
 ### `overview.md` — the always-loaded anchor
 
-Small, mutable, semantically two parts:
+Small, mutable, up to three parts:
 
-1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived constraints that outlive any single implementation. Each entry is one atomic fact, ≤ 200 chars, stated as a constraint on future code rather than a description of current code. Author-only: skills propose, the user confirms; `craft:brainstorm`, `craft:implement`, and `craft:feature-state` may write here.
-2. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (entry points at a spec) and `craft:implement` (entry points at a changes file) at finish.
+1. **Canonical sections** (Product / Business, Architectural Invariants, External Constraints) - long-lived constraints that outlive any single implementation. Each entry is one atomic fact, ≤ 200 chars, phrased telegraphically ([`writing-style.md`](writing-style.md)), stated as a constraint on future code rather than a description of current code. Author-only: skills propose, the user confirms; `craft:brainstorm` and `craft:implement` may write here.
+2. **Related Features** (optional) - typed depth-1 links to sibling / hub / consumer features. Format + `owns:` rule in [`overview.md`](overview.md).
+3. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (entry points at a spec) and `craft:implement` (entry points at a changes file) at finish.
 
 Nothing else. No `Open Questions`, no `Recommended Next Steps`, no `History` log - those drift into bloat with no signal for a future Claude session. Open Questions / TODOs belong in a ticket system; provenance of overview edits is recoverable from `git log overview.md` (if the memory root is versioned) and the cited spec / changes files.
 
@@ -31,37 +32,50 @@ Template: [`templates/changes.md`](templates/changes.md).
 
 ### `snapshots/YYYY-MM-DD.md` — DEPRECATED
 
-The previous dated state-snapshot artifact. No new snapshots are written; existing files remain on disk as legacy reference. Do not edit, do not delete, do not migrate. Loaders never default-read them. If a user needs a frozen full-state distillation today, the answer is `craft:feature-state` consolidating `overview.md`, not a new snapshot.
+The previous dated state-snapshot artifact. No new snapshots are written; existing files remain on disk as legacy reference. Do not edit, do not delete, do not migrate. Loaders never default-read them. If a user needs a frozen full-state distillation today, the answer is the compaction audit consolidating `overview.md`, not a new snapshot.
+
+## Hubs and leaves
+
+Features nest up to 2 levels (`features/<top-level>/<sub-feature>/`). The shape decides which is which:
+
+- **Hub** - a feature dir that contains sub-feature dirs (each with its own `overview.md`). Its `overview.md` is reference-dominant (a blurb + `## Related Features`), no Recent Changes index.
+- **Leaf** - a feature dir whose only children are `overview.md` + `changes/`. Constraint-rich. A top-level feature with no sub-features is itself a leaf.
+
+No type flag; a dir that contains another feature dir is a hub.
 
 ## Read protocol — loading prior context on an existing feature
 
-Any skill starting work on an existing feature (brainstorm, implement, feature-state) should:
+Any skill starting work on an existing feature (brainstorm, implement) should:
 
 1. Check if `<memory-root>/features/<slug>/` exists. If not, it's a new feature - skip.
 2. Read `overview.md` in full. The canonical sections are not re-litigated unless the user flags them as stale; the Recent Changes index points at leaf files.
-3. Read `changes/YYYY-MM-DD-*.md` **on demand only** - when an index entry or the current task plainly references one. Do not bulk-read the directory.
-4. Do NOT default-read prior specs in `<memory-root>/specs/`. Only open a spec if `overview.md` or a relevant changes file points at an unresolved question that lives there.
-5. Do NOT default-read legacy `snapshots/*.md`. Open one only if a current task explicitly references it as historical context.
-6. Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
+3. **Follow Related Features on demand, depth 1.** If `overview.md` has a `## Related Features` section, surface it to the user. Pull a linked feature's `overview.md` only on clear task-need or user ask: load exactly that one `overview.md`, never its `changes/`, never follow its own Related Features. Depth 1, gated, no auto-recurse (a cyclic link graph is safe because traversal never recurses). A hub is entered explicitly ("look at <domain>"); pulling a sub-feature from it is one gated hop.
+4. Read `changes/YYYY-MM-DD-*.md` **on demand only** - when an index entry or the current task plainly references one. Do not bulk-read the directory.
+5. Do NOT default-read prior specs in `<memory-root>/specs/`. Only open a spec if `overview.md` or a relevant changes file points at an unresolved question that lives there.
+6. Do NOT default-read legacy `snapshots/*.md`. Open one only if a current task explicitly references it as historical context.
+7. Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
 
 ## Size budgets (caveman)
 
 - `overview.md` ≤ 5k chars (~1.2k tokens). Loaded by every session that touches the feature.
 - each `changes/*.md` ≤ 2k chars (~500 tokens). Loaded on demand.
 
-If a read step finds `overview.md` over budget, flag it during the restate step and suggest invoking `craft:feature-state` to compact. A `changes/*.md` over budget means scope was wrong - the file is trying to be a snapshot. Flag it but do not auto-fix.
+If a read step finds `overview.md` over budget, flag it during the restate step and run the compaction audit ([`compaction.md`](compaction.md)). A `changes/*.md` over budget means scope was wrong - the file is trying to be a snapshot. Flag it but do not auto-fix.
 
 ## Write protocol — `overview.md`
 
-Mutable with consolidation discipline. `craft:brainstorm` (at finish), `craft:implement` (at finish), and `craft:feature-state` (during compaction) may write here. Rules:
+Mutable with consolidation discipline. `craft:brainstorm` (at finish) and `craft:implement` (at finish, including the compaction audit) may write here. Rules:
 
+- **Junk filter before adding.** Apply the constraint-vs-description test ([`overview.md`](overview.md)): "would this line need rewriting if the implementation flipped?" Yes -> it is a description (params, paths, signatures, class inventories, cost tables, how-the-code-works prose); do not write it, or reword to the underlying constraint. Primary defense against bloat: keep junk out at write time, not just at audit.
+- **Phrase telegraphically** per [`writing-style.md`](writing-style.md).
 - **Check for duplicates before adding** (paraphrase match, not just exact string). Do not write a near-duplicate of an existing entry.
 - **Resolve contradictions.** When a new decision overrides an old one, replace the old line; do not accumulate two contradicting entries.
 - **Consolidate near-duplicates** that drifted into different wordings during prior sessions.
+- **Related Features** links are author-gated: propose one when a session touches a seam, user confirms. Format + `owns:` rule in [`overview.md`](overview.md).
 - **Recent Changes index** is FIFO managed: append the new entry at the top, trim to the last 10. Brainstorm entries point at a spec file; implement entries point at a changes file.
-- **Canonical sections** (Product / Architectural / External) are author-only: only added, edited, or removed on explicit user confirmation. Adds get a dated `History` line.
+- **Canonical sections** (Product / Architectural / External) are author-only: only added, edited, or removed on explicit user confirmation.
 
-Full rules: [`overview.md`](overview.md).
+Full rules: [`overview.md`](overview.md). Compaction audit (run at finish when over budget): [`compaction.md`](compaction.md).
 
 ## Write protocol — `changes/*.md`
 
@@ -73,6 +87,16 @@ Only `craft:implement` writes here, at session finish:
 4. Write to `<memory-root>/features/<slug>/changes/YYYY-MM-DD-<short-topic>.md`. Same-day collision: append `b`, `c`, etc.
 5. Append the index entry to `overview.md` Recent Changes (newest top), trim to the last 10.
 6. Never edit or delete an existing changes file - new facts go in a new dated entry.
+
+## Creating a new feature
+
+When a session must create feature memory that does not exist yet, resolve placement before `mkdir`:
+
+1. List existing top-level hub dirs under `features/`.
+2. Infer placement from code (imports, shared modules/tables) + topic: a sub-feature of an existing hub, or a new top-level feature.
+3. Ask one question only if ambiguous, with the inferred answer pre-filled ("top-level, or sub-feature of `<inferred>`?").
+4. Infer relations the same way; propose the initial Related Features (uplink to the hub + any tight-seam siblings) for confirmation.
+5. Create at the resolved path (`features/<top-level>/<sub-feature>/` or `features/<slug>/`); seed the uplink; add the entry to the hub's Related Features. When placing the first sub-feature under a new hub, create the hub `overview.md` from the hub template in [`overview.md`](overview.md).
 
 ## Invariants
 

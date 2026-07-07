@@ -1,6 +1,6 @@
 # Craft Memory — Path, Layout, Invariants
 
-Craft skills share one durable "memory" directory — the long-lived home for design specs and feature state. All three skills (`brainstorm`, `implement`, `feature-state`) read and write against this single location. This reference defines where it lives, what goes in it, and the invariants every skill must respect. Read this file once before any memory access in a session so all three skills stay consistent.
+Craft skills share one durable "memory" directory, the long-lived home for design specs and feature state. The writing skills (`brainstorm`, `implement`) read and write against this single location. This reference defines where it lives, what goes in it, and the invariants every skill must respect. Read this file once before any memory access in a session so both skills stay consistent.
 
 ## Path
 
@@ -33,23 +33,25 @@ Memory deliberately lives outside the git working tree. Three reasons:
 <memory-root>/
 ├── specs/                                  # dated design specs from craft:brainstorm
 │   └── YYYY-MM-DD-<topic>-design.md        # immutable; never edit in place
-└── features/<slug>/                        # per-feature memory
-    ├── overview.md                         # always loaded; canonical decisions + Recent Changes index
-    ├── changes/                            # leaf files, on-demand load
-    │   └── YYYY-MM-DD-<short-topic>.md     # 1-2 paragraphs; one per memorable implement session
-    └── snapshots/                          # DEPRECATED; do not write to
-        └── YYYY-MM-DD.md                   # legacy reference only; kept for archaeology
+└── features/                               # per-feature memory, nested up to 2 levels
+    └── <top-level>/                        # a product domain; hub when it has sub-feature dirs
+        ├── overview.md                     # the hub's own overview (mostly Related Features links)
+        ├── <sub-feature>/                  # a leaf under this domain
+        │   ├── overview.md                 # always loaded; canonical decisions + Recent Changes index
+        │   └── changes/                    # leaf files, on-demand load
+        │       └── YYYY-MM-DD-<short-topic>.md
+        └── changes/  snapshots/            # a top-level feature with no sub-features is itself a leaf
 ```
 
-Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. File-level roles, read protocol, and write protocol for `overview.md` and `changes/*.md` live in [`feature-files.md`](feature-files.md).
+Feature slugs may be one segment (`horizon-scanning`) or two (`horizon-scanning/watchtower`); nesting is capped at 2. `snapshots/` is DEPRECATED (legacy read-only, never written). Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. Hub-vs-leaf definition, file roles, read protocol, and write protocol live in [`feature-files.md`](feature-files.md).
 
 ## Invariants
 
 - **Specs are immutable.** Once written, never edit. If the design changes, write a new spec.
-- **`overview.md` is mutable with consolidation discipline.** Both `craft:implement` and `craft:feature-state` may add, edit, merge, or remove entries when they spot duplicates or contradictions. Same auto-memory rule: do not write duplicates; update or remove outdated entries.
+- **`overview.md` is mutable with consolidation discipline.** `craft:brainstorm` and `craft:implement` (and the compaction audit they run at finish) may add, edit, merge, or remove entries when they spot duplicates or contradictions. Same auto-memory rule: do not write duplicates; update or remove outdated entries.
 - **`changes/*.md` are immutable once written.** New facts go in a new dated file. Same-day collision: append `b`, `c`, etc.
 - **`snapshots/*.md` are deprecated and read-only.** No new snapshots are written. Existing files remain on disk as legacy reference; do not edit, do not delete, do not migrate.
-- **Code is the source of truth.** When `overview.md`, a changes file, or a legacy snapshot disagrees with current code, fix the memory (consolidate via `craft:feature-state` or write a new changes file) - do not "fix" the old file.
+- **Code is the source of truth.** When `overview.md`, a changes file, or a legacy snapshot disagrees with current code, fix the memory (consolidate via the compaction audit or write a new changes file) - do not "fix" the old file.
 - **Load the anchor first.** A new session on an existing feature reads `overview.md` always; changes files load on demand only when the index entry or current task references one. Legacy `snapshots/` is never default-loaded.
 
 ## What NOT to put in memory

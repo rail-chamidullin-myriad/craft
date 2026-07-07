@@ -6,7 +6,7 @@ superpowers is MIT-licensed. See https://github.com/obra/superpowers/blob/main/L
 
 ## Adapted ideas
 
-The following disciplines in `skills/brainstorm/SKILL.md`, `skills/implement/SKILL.md`, and `skills/feature-state/SKILL.md` are adapted (not copied verbatim) from superpowers skills:
+The following disciplines in `skills/brainstorm/SKILL.md` and `skills/implement/SKILL.md` are adapted (not copied verbatim) from superpowers skills:
 
 - **`superpowers:brainstorming`** - checklist-driven flow (explore context → clarifying questions one at a time → propose 2-3 approaches → present design in sections → self-check → user review), hard-gate before implementation.
 - **`superpowers:writing-plans`** - spec self-review checklist (Completeness, Consistency, Clarity, Scope, YAGNI).

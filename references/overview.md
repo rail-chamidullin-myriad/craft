@@ -1,11 +1,14 @@
 # overview.md guidance
 
-`overview.md` is the always-loaded anchor for a feature. Small, mutable, two parts:
+`overview.md` is the always-loaded anchor for a feature. Small, mutable, up to three parts:
 
 1. **Canonical sections** - long-lived constraints (product/business, architectural invariants, external constraints) that outlive any single implementation. Author-only, evolved with consolidation discipline.
-2. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (pointing at a spec file) and `craft:implement` (pointing at a changes file).
+2. **Related Features** (optional) - typed links to sibling/hub/consumer features. Spec below.
+3. **Recent Changes index** - one line per recent memorable session (brainstorm or implement), newest top, FIFO trimmed to the last 10. Mechanically managed by `craft:brainstorm` (pointing at a spec file) and `craft:implement` (pointing at a changes file).
 
-That's it. No `Open Questions`, no `Recommended Next Steps`, no `History`. Anything that isn't a current constraint or a Recent Changes index entry does not belong here.
+That's it. No `Open Questions`, no `Recommended Next Steps`, no `History`. Anything that isn't a current constraint, a Related Features link, or a Recent Changes index entry does not belong here.
+
+All lines are phrased telegraphically per [`writing-style.md`](writing-style.md).
 
 **Hard cap: 5k chars (~1.2k tokens).** This file is loaded by every craft session on the feature. Bloat taxes every future load.
 
@@ -42,9 +45,22 @@ The second filter is the one most often missed - see the constraint-vs-descripti
 - Older entries (past the 10th most recent) stay on disk as audit trail; they are simply not pointed at from this index.
 - Index budget: 10 lines × ~120 chars = ~1.2k chars. Leaves ~3.8k for canonical sections under the overall 5k cap.
 
+## Related Features section spec
+
+Optional `## Related Features` block, placed above `Recent Changes`. Typed links to other features so a session discovers relevant siblings, hubs, and consumers.
+
+- **Line format:** `- <slug> - <why relevant / what seam> [owns: <area>]`. The `owns:` tag is optional.
+- **`owns:` is the single-source-of-truth marker.** The owner states a cross-cutting constraint in full; a related feature points at it via the link instead of restating. No duplicate constraint lines across features.
+- **Topology:** a leaf links up to its hub; direct sibling links only for a tight seam; mirror / cross-domain consumer relations are ordinary entries. No full mesh; one-way (up) links suffice.
+- **Budget:** ~5-8 entries, same discipline as the Recent Changes index, within the 5k cap.
+- **Author-gated:** the skill proposes a link when a session touches a seam; the user confirms.
+- **Hubs** are reference-dominant: a hub `overview.md` is mostly this section (a domain blurb + links), with few or no constraints of its own. Leaves stay constraint-rich.
+
+Traversal (how a session follows these links: depth-1, gated, no auto-recurse) is defined in [`feature-files.md`](feature-files.md).
+
 ## Mutable-with-consolidation rule (shared across skills)
 
-`overview.md` is mutable, not append-only. `craft:brainstorm` (at finish), `craft:implement` (at finish), and `craft:feature-state` (during compaction) may add, edit, merge, or remove entries when they spot duplicates, contradictions, or lines that fail the constraint-vs-description test. The discipline:
+`overview.md` is mutable, not append-only. `craft:brainstorm` and `craft:implement` (at finish, including the compaction audit they run) may add, edit, merge, or remove entries when they spot duplicates, contradictions, or lines that fail the constraint-vs-description test. The discipline:
 
 - **Check for duplicates before adding** (paraphrase match, not just exact-string match). One fact lives in exactly one place.
 - **Resolve contradictions.** When a new decision overrides an old one, replace the old line; do not accumulate two contradicting entries.
@@ -83,7 +99,7 @@ If a line doesn't fit one of these three, it doesn't belong in canonical section
 - Rejected alternatives - unless the rationale is load-bearing for future decisions, in which case write it as a constraint: *"Do not adopt X - fails on Y."*
 - Author-facing audit trail (dated `History` log of overview.md edits) → `git log overview.md` if the memory root is versioned.
 
-## Template (only if creating overview.md fresh)
+## Leaf template (creating a sub-feature or standalone overview.md fresh)
 
 ```markdown
 # <Feature Name> - Overview
@@ -99,8 +115,25 @@ Long-lived constraints for <feature> plus a rolling index of recent sessions.
 ## External Constraints
 - <Constraint>. Source: specs/YYYY-MM-DD-<topic>-design.md or external doc.
 
+## Related Features
+- <hub-slug> (hub) - domain index.
+
 ## Recent Changes
 - YYYY-MM-DD: <short-topic> -> changes/YYYY-MM-DD-<short-topic>.md
+```
+
+## Hub template (creating a top-level domain hub fresh)
+
+A hub is reference-dominant: a blurb + links, no Recent Changes index (hubs have no sessions of their own), constraints only if pan-domain.
+
+```markdown
+# <Domain> - Hub
+
+Index for the <domain> domain. Load a sub-feature on demand (depth 1, no auto-recurse).
+
+## Related Features
+- <sub-feature-slug> - <one-line role>; owns <area>.
+- <consumer-slug> - <cross-domain relation>.
 ```
 
 ## Writing to existing overview.md

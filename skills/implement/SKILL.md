@@ -73,7 +73,7 @@ Work entirely inside the worktree for the remainder of the session - all file pa
    - `from-conversation` + opt-out: skip memory entirely.
 2. If the slug is ambiguous (multiple plausible existing slugs, or candidate could be either a new feature or a sub-feature of an existing one), ask once with options.
 3. Ensure `overview.md` exists for the resolved slug:
-   - **Feature directory does not exist** → create `<memory-root>/features/<slug>/` with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
+   - **Feature directory does not exist** → resolve placement first (see "Creating a new feature" in [`../../references/feature-files.md`](../../references/feature-files.md): infer top-level vs sub-feature of an existing hub, seed the uplink + any tight-seam Related Features), then create `<memory-root>/features/<slug>/` at the resolved path with an empty `overview.md` (the canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
    - **Directory exists but `overview.md` is missing** (legacy `snapshots/`-only layout, or a custom layout from an earlier flow) → create an empty `overview.md` and flag any `snapshots/` or non-canonical files to the user. Those files aren't auto-loaded under the current read protocol; do not import their content into the new `overview.md`. Constraints accumulate organically from this session forward, or the user can hand-curate from the snapshot if they want.
 4. Follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): load `overview.md`. Do not bulk-read `changes/`; load individual leaf files only on demand.
 
@@ -157,7 +157,7 @@ Report status: what changed, what is verified, anything still open.
 
 ### 9. Write feature memory at finish
 
-This step is mostly automatic. The skill writes a per-session `changes/*.md` (or skips it), updates the `Recent Changes` index in `overview.md`, and proposes any canonical-decision diffs surfaced by the session. The standalone "update feature-state?" prompt is gone - `craft:feature-state` is now invoked only on user request or when the loader trips a budget warning.
+This step is mostly automatic. The skill writes a per-session `changes/*.md` (or skips it), updates the `Recent Changes` index in `overview.md`, proposes any canonical-decision diffs surfaced by the session, and runs the compaction audit if the file drifted over budget. Compaction is folded into this finish step; there is no standalone compaction skill.
 
 If the session opted out of feature memory in step 1 (`stay in current workspace`), skip this step.
 
@@ -169,7 +169,7 @@ If the session opted out of feature memory in step 1 (`stay in current workspace
 
 **4. Propose canonical-decision diffs.** Scan the session for architectural invariants, product/business rules, or external constraints that surfaced. Each candidate must pass the constraint-vs-description test in [`../../references/overview.md`](../../references/overview.md): if the implementation flipped tomorrow, would the line need rewriting? Yes → it's a description; reword to the underlying constraint or skip. Then check `overview.md` for duplicates or contradictions per the consolidation discipline. Present the diff to the user as a short list ("appending these 2 lines under Architectural Invariants; replacing this line because it now contradicts the new code"). Apply on yes. Skip the question entirely if there are no candidates.
 
-**5. Bloat check.** If `overview.md` ends up over 5k chars, flag it and suggest invoking `craft:feature-state` to compact. Do not auto-compact mid-implement.
+**5. Compaction audit.** If `overview.md` is over 4k chars or `Recent Changes` exceeds 10 entries, run the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)): drop descriptions, dedupe, resolve contradictions, then compress surviving prose telegraphically. Substance changes go to the user as a diff; meaning-preserving rewrites are mechanical.
 
 ### 10. Worktree hand-off
 

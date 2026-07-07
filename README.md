@@ -9,13 +9,12 @@ Two main skills carry feature work end to end:
 
 What makes them work *continuously* is **feature memory**: a small always-loaded `overview.md` per feature plus per-session leaf files, modeled on Claude Code's auto-memory pattern. Anything non-trivial spans many sessions, and by the fifth one a Claude Code session normally spends real context re-deriving what was already decided. Feature memory means each new brainstorm or implement session starts from one short file instead of the full spec pile - and `craft:implement` keeps that file fresh by writing a short note to it at finish.
 
-A third skill, `craft:feature-state`, compacts the memory on demand when it drifts.
+Compaction is folded into both skills: each keeps `overview.md` small at finish, writing telegraphically and dropping anything a future reader could recover from the code.
 
 ## Skills
 
 - **`craft:brainstorm`** - Spec-driven design dialogue. Loads prior feature memory, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Publishes Artifacts (hosted on claude.ai) for UI mockups, diagrams, and visual A/B selection. Output: a dated spec.
-- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk) or *from-conversation* (skip the spec when you already know what to build). Sets up a `.worktrees/<branch>/` worktree, bootstraps `features/<slug>/` memory if missing, follows a TDD cadence, and at finish writes a `changes/*.md` leaf and proposes any canonical-decision diffs to `overview.md`.
-- **`craft:feature-state`** - Compact a feature's `overview.md` when it accumulates duplicates, contradictions, or stale entries. On-demand, auto-dream-shaped.
+- **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk) or *from-conversation* (skip the spec when you already know what to build). Sets up a `.worktrees/<branch>/` worktree, bootstraps `features/<slug>/` memory if missing, follows a TDD cadence, and at finish writes a `changes/*.md` leaf, proposes any canonical-decision diffs to `overview.md`, and compacts it if it drifted over budget.
 
 ## Feature memory
 
@@ -30,15 +29,17 @@ The differentiator. Memory lives outside the working tree at:
 ```
 <memory-root>/
 ├── specs/                                  # dated design specs from brainstorming sessions
-└── features/<slug>/
-    ├── overview.md                         # always loaded: canonical decisions + Recent Changes index (FIFO@10)
-    └── changes/                            # leaf files, loaded on demand only
-        └── YYYY-MM-DD-<short-topic>.md     # 1-2 paragraphs per memorable implement session
+└── features/<top-level>/                   # a product domain; hub when it has sub-features
+    ├── overview.md                         # hub index (mostly Related Features links)
+    └── <sub-feature>/
+        ├── overview.md                     # always loaded: canonical decisions + Related Features + Recent Changes (FIFO@10)
+        └── changes/                        # leaf files, loaded on demand only
+            └── YYYY-MM-DD-<short-topic>.md # 1-2 paragraphs per memorable implement session
 ```
 
-`overview.md` is the always-loaded anchor (hard cap 5k chars). It holds long-lived canonical decisions (product/business rules, architectural invariants, external constraints) plus a FIFO index of the 10 most recent changes files. Each `changes/*.md` leaf is 1-2 paragraphs, capped at 2k chars, and only loaded when relevant.
+`overview.md` is the always-loaded anchor (hard cap 5k chars). It holds long-lived canonical decisions (product/business rules, architectural invariants, external constraints), an optional `Related Features` block of typed depth-1 links to sibling / hub / consumer features, and a FIFO index of the 10 most recent changes files. Every line is phrased telegraphically. Each `changes/*.md` leaf is 1-2 paragraphs, capped at 2k chars, and only loaded when relevant.
 
-Discipline comes from scope: a changes file describes one session's delta, by construction it cannot grow into a full state dump. Compaction is opportunistic - both `craft:implement` (at finish) and `craft:feature-state` (on demand) clean up duplicates and contradictions as they go.
+Discipline comes from scope plus a write-time filter: anything a future reader could recover from the code is kept out at write time, and a changes file describes one session's delta so it cannot grow into a full state dump. Compaction is folded into `craft:brainstorm` and `craft:implement`, which drop duplicates and contradictions and compress telegraphically at finish when a file drifts over budget.
 
 **Why outside the working tree:**
 1. Git worktrees share memory automatically, since it's not inside any tree.

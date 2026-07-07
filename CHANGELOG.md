@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.16.0] - 2026-07-07
+
+### Added
+- **Feature-memory hubs and typed cross-references.** `overview.md` gains an optional `## Related Features` block: typed depth-1 links (`- <slug> - <why> [owns: <area>]`) to sibling, hub, and consumer features. Features nest up to two levels (`features/<top-level>/<sub-feature>/`); a dir containing sub-feature dirs is a hub (reference-dominant overview), a dir with only `overview.md` + `changes/` is a leaf. The read protocol surfaces Related Features and pulls a linked `overview.md` on demand only - depth 1, gated, no auto-recurse - so a cyclic link graph stays safe. New guidance in `references/feature-files.md` (hub/leaf definition, "Creating a new feature" placement protocol that infers top-level vs sub-feature from code and seeds the uplink) and `references/overview.md` (Related Features spec + hub template).
+- **Telegraphic writing style (`references/writing-style.md`).** Self-decoding terse phrasing for every memory line (fragments, `= -> +`, problem-first), example-driven, no glossary or invented symbols. Guardrail: non-lossy - a constraint keeps any qualifier that changes its meaning.
+- **Write-time junk filter.** The `overview.md` write protocol applies the constraint-vs-description test before a line is added, so descriptions (params, paths, class inventories, cost tables) never enter. Keeping junk out at write time is the primary defense against bloat.
+- **Compaction audit (`references/compaction.md`).** Two passes: semantic cut (drop descriptions, dedupe, resolve contradictions, trim the index), then stylistic telegraphic rewrite. `craft:brainstorm` and `craft:implement` run it at finish when `overview.md` exceeds 4k chars or `Recent Changes` exceeds 10 entries; meaning-preserving rewrites are mechanical, substance changes go to the user as a diff.
+
+### Removed
+- **`craft:feature-state` skill.** Compaction is folded into `craft:brainstorm` and `craft:implement` via `references/compaction.md`, run automatically at finish. A plain-language "compact this feature" request still works through the same reference.
+
 ## [0.15.0] - 2026-06-25
 
 ### Changed

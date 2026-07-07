@@ -103,14 +103,14 @@ Mostly automatic. Brainstorm always produces a memorable artefact (the spec), so
 
 Ensure `overview.md` exists before the indexing/diff steps below:
 
-- **Feature directory does not exist** → create `<memory-root>/features/<slug>/` with an empty `overview.md` (the three canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
+- **Feature directory does not exist** → resolve placement first (see "Creating a new feature" in [`../../references/feature-files.md`](../../references/feature-files.md): infer top-level vs sub-feature of an existing hub, seed the uplink + any tight-seam Related Features), then create `<memory-root>/features/<slug>/` at the resolved path with an empty `overview.md` (the canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
 - **Directory exists but `overview.md` is missing** (legacy `snapshots/`-only layout, or a custom layout from an earlier flow) → create an empty `overview.md` and flag any `snapshots/` or non-canonical files to the user. Those files aren't auto-loaded under the current read protocol; do not import their content into the new `overview.md`. Constraints accumulate organically from this session forward, or the user can hand-curate from the snapshot if they want.
 
 **1. Append the spec to the Recent Changes index in `overview.md`.** Append at the top in the format `- YYYY-MM-DD: <short-topic> -> specs/YYYY-MM-DD-<short-topic>-design.md`. Trim to the last 10 entries. Mechanical, no judgment. Recent Changes entries can point at either a spec (brainstorm) or a changes file (implement); both share the same FIFO@10 index. If the section does not yet exist in this `overview.md`, create it.
 
 **2. Propose canonical-decision diffs.** Scan the session for decisions that fit one of `overview.md`'s three buckets (product/business rules, architectural invariants, external constraints) and apply across multiple surfaces or sessions — not page-specific layout choices. Each candidate must pass the constraint-vs-description test in [`../../references/overview.md`](../../references/overview.md): if the implementation flipped tomorrow, would the line need rewriting? Yes → it's a description; reword to the underlying constraint or skip. Then check `overview.md` for duplicates or contradictions per the consolidation discipline. Present the diff to the user as a short list ("appending these 2 lines under Product / Business; replacing this line because it now contradicts the new spec"). Apply on yes. Skip the question entirely if there are no candidates.
 
-**3. Bloat check.** If `overview.md` ends up over 5k chars, flag it and suggest invoking `craft:feature-state` to compact. Do not auto-compact mid-brainstorm.
+**3. Compaction audit.** If `overview.md` is over 4k chars or `Recent Changes` exceeds 10 entries, run the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)): drop descriptions, dedupe, resolve contradictions, then compress surviving prose telegraphically. Substance changes go to the user as a diff; meaning-preserving rewrites are mechanical.
 
 **4. Hand off.** Report:
 - Path to the new spec file.
@@ -132,5 +132,5 @@ Ensure `overview.md` exists before the indexing/diff steps below:
 ## Integration
 
 - Pairs with `craft:implement` (next session reads the spec and implements it; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
-- Pairs with `craft:feature-state` for periodic compaction of `overview.md` when the canonical sections drift or the index needs trimming.
+- Runs the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)) at finish when `overview.md` drifts over budget; there is no standalone compaction skill.
 - Writes to feature memory at finish (step 10): appends the spec to the `Recent Changes` index in `overview.md` and proposes canonical-decision diffs. Never writes `changes/*.md` - the spec under `<memory-root>/specs/` is the brainstorm session's record.
