@@ -2,6 +2,16 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.17.0] - 2026-07-09
+
+### Changed
+- **`craft:code-review` findings must survive a confidence check.** Every issue carries two 0-100 scores - importance (how much it matters) and confidence (how sure it's real) - and both must reach 80 to be reported. A bug-class claim must name a concrete failure scenario (the inputs or state that trigger it and the wrong outcome); without one, confidence caps at 50. A never-report list drops pre-existing issues, linter/CI-catchable problems, intentional behavior changes, and docstring imprecision with no behavioral consequence.
+- **Pass 1 runs through five explicit lenses**: correctness, security, data quality, performance, and consistency. The consistency lens reads beyond the diff - every added config block, enum entry, or wiring registration is checked against its field's doc comment and a sibling entry.
+- **Description mismatch is a finding only when behavior differs** from what the description claims; imprecise wording stays below the reporting bar.
+
+### Added
+- **Deep mode in `craft:code-review`.** Diffs with 500+ changed lines of real code (excluding fixtures, generated files, lockfiles, translations), or an explicit deep/thorough request, fan out parallel read-only finder subagents - one per applicable lens - each returning candidates with a failure scenario. The main loop verifies every candidate against the surrounding code, drops what it refutes, and scores the survivors. Smaller diffs keep the single-pass fast path.
+
 ## [0.16.0] - 2026-07-07
 
 ### Added

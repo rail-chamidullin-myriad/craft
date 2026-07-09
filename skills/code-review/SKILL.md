@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Run a fast, single-pass code review of a GitHub PR or the current branch. Outputs only three things — risk score (low/medium/high), code quality score (0-100), and the issues that score >= 80 on importance. Use when the user says "/code-review", "/code-review <PR#>", "code review", "quick review", "fast review", "lightweight code review", "tldr review", or asks for a code review and wants something shorter than the multi-agent reviewers shipped by other plugins. Prefer this over deeper review tools whenever the user signals they want speed, brevity, or just the headline risks.
+description: Run a fast code review of a GitHub PR or the current branch - single-pass by default, parallel finder lenses with verification on large diffs. Outputs only three things - risk score (low/medium/high), code quality score (0-100), and the issues that score >= 80 on both importance and confidence. Use when the user says "/code-review", "/code-review <PR#>", "code review", "quick review", "fast review", "lightweight code review", "tldr review", or asks for a code review and wants something shorter than the multi-agent reviewers shipped by other plugins. Prefer this over deeper review tools whenever the user signals they want speed, brevity, or just the headline risks.
 ---
 
 # Code Review
@@ -43,15 +43,33 @@ Every fetch is read-only against the remote. Nothing should land in the working 
 
 Two passes over the diff, in order:
 
-**Pass 1 — bug check.** For each non-trivial code change, ask:
-- Does it do what the PR title/description claims?
-- Are there off-by-one, null/None, async/await, transaction-boundary, or type-confusion bugs?
-- Does any change widen a public contract, alter a failure path, or affect shared state?
-- Are tests covering the new logic? (Existence is enough — don't grade test quality here.)
+**Pass 1 - bug hunt.** Sweep every non-trivial code change through the lenses below. Read beyond the diff hunk when a lens calls for it: the surrounding function, a field's doc comment, a sibling entry. The diff shows what changed; bugs usually live in how the change meets the code around it.
 
-**Pass 2 — description match.** Read the PR description (or commit messages, in branch mode) and confirm the diff actually delivers what's described. Flag mismatches as issues. If the description is empty or generic ("misc fixes"), that itself is a finding.
+**Pass 2 - description match.** Read the PR description (or commit messages, in branch mode) and confirm the diff actually delivers what's described. A mismatch is a finding only when the code *behaves* differently from what the description claims - imprecise wording in a description, docstring, or comment with no behavioral consequence is maintainability, usually below the reporting bar. If the description is empty or generic ("misc fixes"), that itself is a finding.
 
 You do NOT need to: rewrite the code, suggest style nits, audit every test fixture, score test coverage on a rubric, or list every observation. If an issue wouldn't make you push back on the PR, leave it out.
+
+### Lenses
+
+The pass-1 checklist in single-pass mode; one finder each in deep mode. Skip lenses with no surface in the diff.
+
+- **Correctness** - off-by-one, null/None, async/await, type confusion, transaction boundaries, races and idempotency under retry/redelivery, altered failure paths, widened public contracts. Existence of tests for new logic counts here - don't grade test quality.
+- **Security** - untrusted input reaching SQL/shell/HTML/LLM prompts, missing authz on new endpoints, secrets or PII in logs and error messages.
+- **Data quality** - migrations vs existing rows, partial-failure states, lost writes, timezone/encoding handling, wrong-but-plausible values persisted.
+- **Performance** - N+1 queries, unbounded fan-out or batch sizes, missing limits/pagination on new queries, slow work inside locks.
+- **Consistency** - for every added config block, enum entry, or wiring registration: read the field's doc comment and one sibling entry, and flag deviations (a value contradicting the documented contract, a companion field siblings set but this block omits, a registration missing from one place siblings appear in).
+
+## Depth
+
+Single pass in the main loop is the default and right for most PRs.
+
+Switch to deep mode when the diff has 500+ changed lines of real code (excluding fixtures, generated files, lockfiles, translations) or the user asks for a deep/thorough review:
+
+1. Launch parallel read-only finder subagents, one per applicable lens. Give each the PR number (or branch), the changed-file list, its lens, and the fetch rules above. Each returns candidate findings: `file:line`, a one-line summary, and a concrete failure scenario.
+2. Verify every candidate yourself in the main loop: fetch the surrounding code and try to refute it. Drop what you refute.
+3. Merge duplicates, then score survivors like any other issue.
+
+Finders find; only the main loop scores and reports.
 
 ## Scoring
 
@@ -80,19 +98,30 @@ State the score on one line with a one-clause reason.
 
 ## Issue scoring
 
-For every concrete issue you'd consider raising, assign an **importance** score 0-100:
+Every candidate issue gets two scores, 0-100 each. **Show only issues with both at 80 or higher.**
 
-- **90-100** — bug, security issue, data-loss risk, contract violation, or "this PR doesn't do what its description says."
-- **80-89** — meaningful correctness or maintainability concern: load-bearing assumption that's wrong, missing test for a non-trivial branch, fragile coupling that will break next quarter.
-- **60-79** — solid suggestion but the PR is fine without it.
-- **<60** — nit, style, taste. Drop these.
+**Importance** - how much it matters:
 
-**Only show issues scoring 80 or higher.** If there are none, say so explicitly — "no issues at or above importance 80" — don't pad with lower-importance items.
+- **90-100** - bug, security issue, data-loss risk, contract violation, or "this PR doesn't do what its description says."
+- **80-89** - meaningful correctness or maintainability concern: load-bearing assumption that's wrong, missing test for a non-trivial branch, fragile coupling that will break next quarter.
+- **60-79** - solid suggestion but the PR is fine without it.
+- **<60** - nit, style, taste. Drop these.
+
+**Confidence** - how sure you are the issue is real. Before scoring it, re-read the actual code around the finding, not just the diff hunk. Any bug-class claim must name a concrete failure scenario: the inputs or state that trigger it and the wrong outcome. Without a scenario, confidence caps at 50.
+
+Never report:
+
+- Pre-existing issues on lines the PR didn't touch.
+- Anything a linter, type-checker, or CI would catch.
+- Intentional behavior changes that serve the PR's stated purpose.
+- Docstring/comment imprecision with no behavioral consequence.
+
+If nothing clears both bars, say so explicitly - "no issues at or above importance 80" - don't pad with lower-scoring items.
 
 For each shown issue:
 - One line stating the problem with `file:line` if applicable.
-- One line on why it matters (the *why*, not "this is wrong").
-- Importance number in brackets at the end.
+- One line on the failure scenario or why it matters (the *why*, not "this is wrong").
+- Importance number in brackets at the end. Confidence is a filter, not part of the output.
 
 ## Output format
 
