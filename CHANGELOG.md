@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.18.0] - 2026-07-11
+
+### Changed
+- **`craft:code-review` quality score is derived from evidence, not impression.** The 0-100 grade comes from five named dimensions - structure, readability, simplicity, reviewability, and convention fit - combined by taking the lowest one or two rather than averaging, so one weak axis caps the grade instead of being masked. Any score below 90 must point at named defects, and "no bugs found" is explicitly severed from cleanliness: a review can report zero issues and still score in the 60s. The quality score and the issue list are separate axes - structural and reviewability defects set the grade even when they never clear the importance bar.
+- **Reviewability is a first-class scored dimension.** Review now reads the commit list (`gh pr view --json commits`) and judges whether the diff braids pure moves/refactors with new logic so git can't separate them, and whether commits are logically grouped and individually reviewable. Structure judges the delta - a change that lengthens an already-long function without extracting is a regression even when the length predates the PR.
+
+### Added
+- **Pass 3 (structure and reviewability)** and a matching lens, feeding the quality score rather than the issue list. A third worked example anchors the mid-band: a correct, tested, dark-launched change scored 66 because moved code is indistinguishable from new code and a gate predicate re-asserts state the type system should carry.
+
 ## [0.17.0] - 2026-07-09
 
 ### Changed
