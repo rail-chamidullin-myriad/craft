@@ -15,6 +15,8 @@ The user already has access to slower, more thorough reviewers. This skill exist
 
 **The output is about the review, not the PR.** The user can read the PR description themselves — don't recapitulate what the PR does. Every line should carry review signal: a score, a finding, or the reasoning behind a score.
 
+**Writing for readers:** findings and score rationales are read by a human. Write them plainly per [`../../references/writing-clarity.md`](../../references/writing-clarity.md).
+
 ## Inputs
 
 Argument handling:

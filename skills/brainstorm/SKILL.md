@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor — even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement — handoff is to craft:implement in a separate session. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
+description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor, even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement; it ends by offering to hand off to craft:implement, in this session or a later one. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
 ---
 
 # Brainstorm (craft)
@@ -13,10 +13,12 @@ Turn an idea into a fully formed design through natural collaborative dialogue, 
 
 **Principles:** DRY. YAGNI. KISS. One question at a time. Recommend, don't lecture.
 
+**Writing for readers:** the design spec and everything you present in chat are read by a human. Write them plainly per [`../../references/writing-clarity.md`](../../references/writing-clarity.md). Internal memory files use the telegraphic [`../../references/writing-style.md`](../../references/writing-style.md) instead.
+
 **Asking questions:** Ask when a decision genuinely needs the user's input - one question per turn, with your recommended answer. Skip anything you can verify from the code, `CLAUDE.md`, or repo conventions. Err on the side of fewer, higher-signal questions; brainstorming is a dialogue, not an interrogation.
 
 <HARD-GATE>
-Do NOT write code, scaffold, or invoke any implementation skill until you have presented a design and the user has approved it. The terminal state of this skill is a written spec plus a handoff note - not implementation.
+Do NOT write code, scaffold, or invoke any implementation skill until the spec is written and the user has accepted an explicit offer to move to implementation. Approving a design section is not that acceptance. This skill always writes a spec; implementation may follow in the same session, but only once the user says so.
 </HARD-GATE>
 
 ## The Process
@@ -115,7 +117,11 @@ Ensure `overview.md` exists before the indexing/diff steps below:
 **4. Hand off.** Report:
 - Path to the new spec file.
 - Any open questions still to resolve.
-- Suggest: the implementation session can read this spec and invoke `craft:implement`.
+- Offer to start `craft:implement` now, in this session, in from-spec mode. Wait for the user to accept.
+
+from-spec is the correct mode for a same-session handoff, not from-conversation. from-conversation derives the feature slug from the branch name and would create a sibling directory next to the one just indexed, and it carries an offer to switch back to `craft:brainstorm` for large scope that would fire circularly.
+
+If the user declines, stop. The spec stands as the record for a later session.
 
 ## Red Flags
 
@@ -124,13 +130,14 @@ Ensure `overview.md` exists before the indexing/diff steps below:
 | "Let me propose the full design in one message" | No. Sections, with approval between them. |
 | "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
 | "I will skip reading overview.md since I just had a session on this" | No. Read it. A new session has no memory. |
-| "I will start implementing because the user said yes once" | No. This skill ends at the spec. Implementation is a separate session via craft:implement. |
+| "I will start implementing because the user said yes once" | No. Yes to a design section is not yes to implementing. The spec gets written first, then you offer. |
+| "This task is small, so I'll skip the spec" | No. The spec is always written. It costs seconds and it survives the session. |
 | "I'll publish an Artifact for this question" | Only if the content is a rendered visual. A page of text options is worse than asking in the terminal. |
 | "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
 | "I'll note this as an open question and let implementation resolve it" | No. If a grep or file read answers it, run the grep or read the file now. Open Questions is for items only the user can decide or that genuinely need implementation-time context. |
 
 ## Integration
 
-- Pairs with `craft:implement` (next session reads the spec and implements it; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
+- Pairs with `craft:implement` (reads the spec and implements it, in this session or a later one; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
 - Runs the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)) at finish when `overview.md` drifts over budget; there is no standalone compaction skill.
 - Writes to feature memory at finish (step 10): appends the spec to the `Recent Changes` index in `overview.md` and proposes canonical-decision diffs. Never writes `changes/*.md` - the spec under `<memory-root>/specs/` is the brainstorm session's record.

@@ -2,6 +2,17 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.19.0] - 2026-07-30
+
+### Changed
+- **`craft:implement` shapes commits for review during the run instead of committing once per task.** Tasks are grouped into review units before execution, where a unit is one coherent change a reviewer can judge alone, tests included, with mechanical changes kept out of logic commits. The first task in a unit opens a commit with a provisional message, later tasks in the same unit `git commit --amend --no-edit`, and the last one amends in the final message. A rollback point still exists after every task, and the finished history needs no rebase. Squashing and re-splitting after the fact is now forbidden outright: re-cutting hunks by hand is the riskiest step in the workflow and reaches the same end state. An explicit user commit instruction overrides the grouping.
+- **The format, lint, and type-check gate runs when a review unit is sealed, not after every task.** Intermediate amend states never enter history or reach a reviewer, so gating each one costs a full check per task and protects nothing. Every commit that survives into history still passes.
+- **`craft:brainstorm` may hand off to `craft:implement` in the same session.** Brainstorm still always writes a spec, then offers to continue. The spec is cheap, survives the session, and a size-based branch that skipped it would be a judgment call the skill gets wrong often enough to be worse than the friction. The handoff runs in from-spec mode, because from-conversation would derive the feature slug from the branch name and create a sibling directory next to the one just indexed, and would fire its own brainstorm-escalation rule circularly.
+- **`craft:implement` skips the spec review for a spec authored earlier in the same conversation.** Brainstorm's self-check already guarantees no `TBD` entries and no unresolved open questions, and the user approved every section minutes earlier. A spec read from disk in a fresh session keeps the full review.
+
+### Added
+- **`references/writing-clarity.md`**, the plain-writing standard for everything a human reads. All three skills point at it: brainstorm for the spec and chat, implement for commit messages and hand-off summaries, code-review for findings and score rationales. Internal memory files keep the telegraphic `writing-style.md` instead.
+
 ## [0.18.0] - 2026-07-11
 
 ### Changed

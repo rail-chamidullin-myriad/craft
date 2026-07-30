@@ -5,7 +5,7 @@ description: Execute a feature end-to-end in the current session, without writin
 
 # Implement (craft)
 
-Direct implementation in the main session loop, with no plan-on-disk. Discipline comes from TDD cadence, per-task commits, and a TodoWrite ledger - not a markdown plan file.
+Direct implementation in the main session loop, with no plan-on-disk. Discipline comes from TDD cadence, review-unit commits, and a TodoWrite ledger - not a markdown plan file.
 
 ## Modes
 
@@ -19,7 +19,9 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 - Include the agreed scope in the final hand-off summary (step 10), so the session is still traceable.
 - If the agreed scope is large enough that it would benefit from a spec, say so and offer to switch to `craft:brainstorm` instead. Proceed only if the user confirms they want to skip the spec.
 
-**Principles:** DRY. YAGNI. KISS. TDD. Frequent commits.
+**Principles:** DRY. YAGNI. KISS. TDD. Commits shaped for review.
+
+**Writing for readers:** commit messages, the PR description, and hand-off summaries are read by a human. Write them plainly per [`../../references/writing-clarity.md`](../../references/writing-clarity.md).
 
 **Asking questions:** Ask when scope, design, or assumptions shift mid-work. Otherwise execute. If code disagrees with the spec, if an API behaves differently than expected, or if a new edge case appears, pause and check - don't guess.
 
@@ -85,6 +87,7 @@ Work entirely inside the worktree for the remainder of the session - all file pa
 - Scope check: if the spec spans multiple independent subsystems, propose splitting before coding. Each chunk should be independently working and testable.
 - If the spec has unresolved entries under `Open Questions`, treat them as blockers. Ask the user before coding anything that depends on them.
 - Surface concerns to the user and wait for answers on anything load-bearing. Do not guess.
+- **Spec authored earlier in this same conversation:** say so and skip the ambiguity, gap, and open-questions review, then go straight to step 3. Brainstorm's own self-check already guarantees no `TBD` entries and no unresolved open questions, and the user approved every section minutes ago. A spec read from disk in a fresh session still gets the full review.
 
 **from-conversation:**
 - Restate your understanding of the agreed scope in 3-5 bullet points. Include goal, key files to touch, and any explicit constraints.
@@ -115,19 +118,30 @@ Present this as a short bullet list, get user confirmation, then proceed.
 
 - Decompose work into bite-sized tasks. Each task produces a self-contained change that makes sense independently.
 - Use TodoWrite as the ledger. No markdown plan file on disk.
+- **Group the tasks into review units.** A review unit is one coherent change a reviewer can judge on its own, and it becomes exactly one commit. Criteria:
+  - Tests ship in the same unit as the code they cover.
+  - Mechanical changes (renames, file moves, generated output, formatting) get their own unit, never braided with logic.
+  - A unit you cannot summarise in one line is too big. Split it.
+  - Small work is one unit. Do not manufacture units to hit a count.
+- State the grouping in the same message as the ledger. It needs no separate approval gate; step 3 already carried one.
+- An explicit user commit instruction ("make this four commits", "just one commit") overrides the grouping. Follow it.
 - Per task, the step cadence is:
   - Write the failing test.
   - Run it and verify it fails for the right reason.
   - Implement the minimal code to make the test pass.
   - Run the tests and verify they pass.
-  - Commit.
+  - First task in a review unit: `git commit` with a provisional message. Every later task in the same unit: `git commit --amend --no-edit`.
+  - Last task in a unit: `git commit --amend` and write the final message for the finished unit.
+- Write the final message for the end state, not the first task. A unit often turns out different from the plan, which is why the opening message is provisional.
+- Never squash, rebase, or re-split commits after the fact. Shaping them as you go reaches the same history without re-cutting hunks by hand.
 - Each step is one action (2-5 minutes). If a step feels bigger than that, split it.
 - Skip the TDD cadence only when it genuinely does not apply (pure config change, UI tweak that cannot be unit-tested). Say so explicitly when you skip.
 
 ### 5. Execute in the main session loop
 
 - Work one task at a time. Mark `in_progress` before starting, `completed` when done.
-- Commit after each task, not at the end. Follow the project's commit conventions if documented in `CLAUDE.md`.
+- Commit or amend after each task, never only at the end. Follow the project's commit conventions if documented in `CLAUDE.md`.
+- **Run the format, lint, and type-check gate when a review unit is sealed**, not after every task. Intermediate amend states never enter history or reach a reviewer. Every commit that survives into history must pass, so the sealing amend is the gate.
 - Stop and ask when anything changes the picture - missing dependency, failing verification, unclear instruction, code disagreeing with the spec, an API behaving differently than expected, or a new edge case that the design did not account for. Do not guess.
 - Never start implementation on `main` or `master` without explicit consent.
 - **Surgical changes only.** Touch only what the task requires. Do not "improve" adjacent code, comments, or formatting on the way past. Match existing style even if you would write it differently. Remove imports/variables/functions that *your* changes orphaned; leave pre-existing dead code alone unless explicitly asked. Every changed line should trace directly to the user's request - if you cannot justify a hunk by pointing at the task, revert it.
@@ -181,7 +195,7 @@ Send this as the final message (substitute `<N>` from `git rev-list --count <bra
 >
 > What do you want to do next?
 >
-> 1. Remove the worktree now (useful if you want to check out `<branch>` in the main checkout to review/rebase/squash in your IDE).
+> 1. Remove the worktree now (useful if you want to check out `<branch>` in the main checkout to review it in your IDE).
 > 2. Push from the worktree, keep it open (useful if you expect PR review feedback and want to avoid re-running project setup).
 > 3. Leave it - you'll clean up later.
 >
@@ -211,7 +225,9 @@ If the user picks option 2 or 3, or gives custom instructions, follow those and 
 | "The spec says `TBD` but I will infer what was meant" | Stop. Ask the user. |
 | "Self-review was clean so it is good" | Run the actual verifications (format/lint, type-check, tests). |
 | "I will skip the failing-test step to save time" | No. The failing test proves the test exercises the change. |
-| "One big commit at the end is cleaner" | No. Commit per task. |
+| "One big commit at the end is cleaner" | No. One commit per review unit, shaped as you go. |
+| "I'll commit per task and squash and re-split at the end" | No. Re-cutting hunks by hand is the riskiest step in the workflow. Amend within the unit instead. |
+| "I'll run lint and type-check after every task" | No. Run the gate when a review unit is sealed. Intermediate amends never enter history. |
 | "I'll clean up this nearby code while I'm here" | No. Surgical changes only. Mention it; don't touch it. |
 | "I'll match my preferred style instead of the existing one" | No. Match the surrounding code, even if you'd write it differently. |
 
