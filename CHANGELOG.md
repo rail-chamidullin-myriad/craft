@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.21.0] - 2026-08-31
+
+### Added
+- **`craft:worktree-cleanup` audits and removes stale local worktrees and branches without destroying work.** It shows a summary before deleting anything, then removes only worktrees whose branch is merged or whose remote branch is gone, along with free branches in the same state. Clean-detection ignores sparse-checkout phantom deletions so a sparse worktree does not read as dirty, removal runs in batches of three because full checkouts are heavy disk I/O, and a locked worktree is kept only while its session pid is alive. An opt-in second pass drops unmerged worktrees, but solely when they are unlocked, clean, and fully pushed to the remote.
+
 ## [0.20.0] - 2026-08-31
 
 ### Changed
