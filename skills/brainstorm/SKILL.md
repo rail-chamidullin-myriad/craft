@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor, even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates via one clarifying question at a time (with a recommended answer), proposes 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement; it ends by offering to hand off to craft:implement, in this session or a later one. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
+description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor, even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates by mapping open-ended problems as axes and option bundles before narrowing, asking one clarifying question at a time (with a recommended answer), proposing 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement; it ends by offering to hand off to craft:implement, in this session or a later one. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
 ---
 
 # Brainstorm (craft)
@@ -37,7 +37,14 @@ This discipline applies not only to clarifying questions to the user but also to
 
 Before detailed questions, assess scope: if the request spans multiple independent subsystems, flag it and help decompose into sub-projects. Each sub-project gets its own spec later.
 
-### 3. Ask clarifying questions
+### 3. Map the design space, then ask clarifying questions
+
+Match the opening move to the grain of the user's ask:
+
+- **A specific decision** ("should we use A or B?") — go straight to clarifying questions.
+- **An open problem** ("we need to rethink X", "how should this work?") — do NOT open with a narrow question; the user came to discover the options, and a pointed question just hands their problem back to them. First lay out the design space from your exploration: the independent axes the problem splits into, the realistic options on each axis, and 2-3 coherent bundles across the axes with trade-offs. Invite reactions — the user's picks and rejections replace a round of interrogation, and remaining questions target only the axes they left open.
+
+Then ask clarifying questions:
 
 - One question per message. No bundled questions.
 - Prefer multiple choice when natural, open-ended when not.
@@ -49,7 +56,7 @@ Probe briefly for the usual gaps when they seem load-bearing (error paths, empty
 
 ### 4. Propose 2-3 approaches
 
-Once the problem is clear, propose 2-3 approaches with trade-offs. Lead with your recommendation and explain why.
+Once the problem is clear, propose 2-3 approaches with trade-offs. Lead with your recommendation and explain why. If step 3 already presented bundles, refine the surviving ones instead of drafting a fresh list.
 
 ### 5. Present the design
 
@@ -129,6 +136,7 @@ If the user declines, stop. The spec stands as the record for a later session.
 |---------|---------|
 | "Let me propose the full design in one message" | No. Sections, with approval between them. |
 | "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
+| "The ask is open-ended, but a specific question will make progress" | No. Map the axes, options, and bundles first; narrow questions come after the user reacts to the landscape. |
 | "I will skip reading overview.md since I just had a session on this" | No. Read it. A new session has no memory. |
 | "I will start implementing because the user said yes once" | No. Yes to a design section is not yes to implementing. The spec gets written first, then you offer. |
 | "This task is small, so I'll skip the spec" | No. The spec is always written. It costs seconds and it survives the session. |

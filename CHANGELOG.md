@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.20.0] - 2026-08-31
+
+### Changed
+- **`craft:brainstorm` maps the design space before it narrows on an open-ended ask.** Step 3 now matches its opening move to the grain of the request. A specific decision ("should we use A or B?") still goes straight to clarifying questions. An open problem ("rethink X", "how should this work?") gets the landscape first: the independent axes the problem splits into, the realistic options on each axis, and 2-3 coherent bundles across them with trade-offs. A pointed opening question on an open problem hands the problem back to the user, who came to discover the options; laying out the space lets their picks and rejections stand in for a round of one-at-a-time questions, and the remaining questions target only the axes they left open. Step 4 refines the surviving bundles instead of drafting a fresh list, and a new anti-pattern row blocks the shortcut of leading with a narrow question because it makes progress.
+
 ## [0.19.0] - 2026-07-30
 
 ### Changed
