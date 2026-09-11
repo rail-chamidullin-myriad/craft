@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.23.0] - 2026-09-11
+
+### Removed
+- **The subagent-dispatch path in `craft:implement`.** Implementation stays in the main session, and only the red-flag row saying so survives. The dispatch protocol required the subagent to ask clarifying questions before implementing, which a subagent cannot do: it runs once and returns a single report. It also expected one of four status tokens back without ever instructing the subagent to emit them. A subagent reads the project's `CLAUDE.md` files but does not inherit the caller's output style or user instructions, so code and commit messages it authors bypass the writing standard and the format, lint, and type-check gate.
+
 ## [0.22.0] - 2026-09-11
 
 ### Removed

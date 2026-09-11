@@ -16,7 +16,7 @@ Direct implementation in the main session loop, with no plan-on-disk. Discipline
 **from-conversation** (use when the user describes the work inline and skips the spec step):
 - No spec file. The design is whatever has been agreed in the current conversation.
 - Before starting, restate the understood scope in 3-5 bullet points and ask the user to confirm or correct. This replaces the "critical spec review" step.
-- Include the agreed scope in the final hand-off summary (step 10), so the session is still traceable.
+- Include the agreed scope in the final hand-off summary (step 9), so the session is still traceable.
 - If the agreed scope is large enough that it would benefit from a spec, say so and offer to switch to `craft:brainstorm` instead. Proceed only if the user confirms they want to skip the spec.
 
 **Principles:** DRY. YAGNI. KISS. TDD. Commits shaped for review.
@@ -146,11 +146,7 @@ Present this as a short bullet list, get user confirmation, then proceed.
 - Never start implementation on `main` or `master` without explicit consent.
 - **Surgical changes only.** Touch only what the task requires. Do not "improve" adjacent code, comments, or formatting on the way past. Match existing style even if you would write it differently. Remove imports/variables/functions that *your* changes orphaned; leave pre-existing dead code alone unless explicitly asked. Every changed line should trace directly to the user's request - if you cannot justify a hunk by pointing at the task, revert it.
 
-### 6. When to dispatch a subagent (exception, not default)
-
-Default is main-session execution — it has context a fresh agent does not, and course-correction is cheap here. Dispatch a subagent only for isolated, mechanical, single-concern work that does not change architecture or shared conventions. When you do dispatch, read `references/subagent-dispatch.md` for the full protocol (criteria, status-report handling, model selection).
-
-### 7. Pre-completion self-check (inline, not a document review)
+### 6. Pre-completion self-check (inline, not a document review)
 
 Before declaring done:
 - **Spec coverage** - every requirement in the spec maps to implemented code. List any gaps.
@@ -159,7 +155,7 @@ Before declaring done:
 - **No silenced warnings or type-check escape hatches** (e.g. `# type: ignore`, `@ts-ignore`, `eslint-disable`, `#[allow(...)]`) added to make the build pass. If the tool complains, fix the root cause.
 - Self-review finds some classes of issues; a genuine review pass finds others. Do both.
 
-### 8. Verify
+### 7. Verify
 
 Run the project's verification commands - the exact shortcuts depend on the project. Check the project's `CLAUDE.md` or README for documented ones; otherwise use whatever the project conventionally runs:
 
@@ -169,13 +165,13 @@ Run the project's verification commands - the exact shortcuts depend on the proj
 
 Report status: what changed, what is verified, anything still open.
 
-### 9. Write feature memory at finish
+### 8. Write feature memory at finish
 
 This step is mostly automatic. The skill writes a per-session `changes/*.md` (or skips it), updates the `Recent Changes` index in `overview.md`, proposes any canonical-decision diffs surfaced by the session, and runs the compaction audit if the file drifted over budget. Compaction is folded into this finish step; there is no standalone compaction skill.
 
 If the session opted out of feature memory in step 1 (`stay in current workspace`), skip this step.
 
-**1. Decide if the session is memorable.** Ask: would a future reader miss something from `git log` + code alone? If no (typo fix, dep bump, mechanical refactor), state "no memory write - session is recoverable from git log alone" and skip to step 10. The default for routine sessions is no file.
+**1. Decide if the session is memorable.** Ask: would a future reader miss something from `git log` + code alone? If no (typo fix, dep bump, mechanical refactor), state "no memory write - session is recoverable from git log alone" and skip to step 9. The default for routine sessions is no file.
 
 **2. Draft and write the changes file.** If memorable, draft from session context (TodoWrite log, spec, conversation) keeping under 2k chars. Use the template at [`../../references/templates/changes.md`](../../references/templates/changes.md). Write to `<memory-root>/features/<slug>/changes/YYYY-MM-DD-<short-topic>.md`. Topic comes from the spec, the dominant TodoWrite theme, or the user's own description of the work. Same-day collision: append `b`, `c`, etc. The file is immutable once written.
 
@@ -185,11 +181,11 @@ If the session opted out of feature memory in step 1 (`stay in current workspace
 
 **5. Compaction audit.** If `overview.md` is over 4k chars or `Recent Changes` exceeds 10 entries, run the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)): drop descriptions, dedupe, resolve contradictions, then compress surviving prose telegraphically. Substance changes go to the user as a diff; meaning-preserving rewrites are mechanical.
 
-### 10. Worktree hand-off
+### 9. Worktree hand-off
 
 Close the session with a single status line plus neutral next-step options. Do NOT recommend a default - worktree cleanup conventions vary by user, and any built-in default will be wrong for most of them.
 
-Send this as the final message (substitute `<N>` from `git rev-list --count <branch> ^<base>` and the verification line from step 8):
+Send this as the final message (substitute `<N>` from `git rev-list --count <branch> ^<base>` and the verification line from step 7):
 
 > "Implementation is complete on `<branch>` at `.worktrees/<branch>` — `<N>` commits, verification: lint=pass type=pass tests=`<N>` passed. Commits are already visible from the main checkout.
 >
