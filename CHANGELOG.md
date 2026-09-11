@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.0] - 2026-09-11
+
+### Removed
+- **`craft:code-review`.** A dedicated code-review plugin covers the same job, and two review skills competing for the same trigger phrases made which one ran unpredictable.
+
 ## [0.21.0] - 2026-08-31
 
 ### Added

@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "craft",
-  "description": "Disciplined, spec-driven software development skills: brainstorming, implementation, and lightweight code review.",
+  "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
   "owner": {
     "name": "Rail Chamidullin"
   },
   "plugins": [
     {
       "name": "craft",
-      "description": "Disciplined, spec-driven software development skills: brainstorming, implementation, and lightweight code review.",
+      "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
       "source": "./",
       "category": "development"
     }

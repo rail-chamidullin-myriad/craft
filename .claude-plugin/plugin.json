@@ -1,7 +1,7 @@
 {
   "name": "craft",
-  "version": "0.21.0",
-  "description": "Disciplined, spec-driven software development skills: brainstorming, implementation, and lightweight code review.",
+  "version": "0.22.0",
+  "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
   "author": {
     "name": "Rail Chamidullin"
   },
