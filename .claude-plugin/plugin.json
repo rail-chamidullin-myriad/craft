@@ -1,11 +1,12 @@
 {
   "name": "craft",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
   "author": {
     "name": "Rail Chamidullin"
   },
   "homepage": "https://github.com/rail-chamidullin-myriad/craft",
   "repository": "https://github.com/rail-chamidullin-myriad/craft",
+  "license": "MIT",
   "keywords": ["spec-driven", "tdd", "brainstorming", "workflow", "skills"]
 }

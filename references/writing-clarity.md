@@ -1,6 +1,6 @@
 # Writing clarity - reader-facing prose
 
-Applies to anything a human reads: design specs, PR titles and descriptions, commit messages, code-review findings, and text presented in chat.
+Applies to anything a human reads: design specs, PR titles and descriptions, commit messages, and text presented in chat.
 
 For internal craft memory (`overview.md`, `changes/*.md`), use the telegraphic [`writing-style.md`](writing-style.md) instead. That style is denser and not meant for review.
 

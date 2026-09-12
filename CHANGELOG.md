@@ -2,6 +2,11 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.0] - 2026-09-11
+
+### Changed
+- **The README lists `craft:worktree-cleanup`**, which had shipped without a mention. `plugin.json` also declares the MIT license that the repo already carries, the marketplace `$schema` points at its current URL, and the writing-clarity reference drops code-review findings from the prose it covers.
+
 ## [0.23.0] - 2026-09-11
 
 ### Removed

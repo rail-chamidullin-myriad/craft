@@ -15,6 +15,7 @@ Compaction is folded into both skills: each keeps `overview.md` small at finish,
 
 - **`craft:brainstorm`** - Spec-driven design dialogue. Loads prior feature memory, asks clarifying questions one at a time (with a recommended answer where useful), proposes 2-3 approaches with trade-offs, and presents the design in sections for incremental approval. Publishes Artifacts (hosted on claude.ai) for UI mockups, diagrams, and visual A/B selection. Output: a dated spec.
 - **`craft:implement`** - Execute a feature in the current session. Two modes: *from-spec* (read a design spec from disk) or *from-conversation* (skip the spec when you already know what to build). Sets up a `.worktrees/<branch>/` worktree, bootstraps `features/<slug>/` memory if missing, follows a TDD cadence, and at finish writes a `changes/*.md` leaf, proposes any canonical-decision diffs to `overview.md`, and compacts it if it drifted over budget.
+- **`craft:worktree-cleanup`** - Audit and remove stale local worktrees and branches. Shows a summary before deleting anything, then removes only worktrees whose branch is merged or whose remote branch is gone. Never touches a locked worktree, uncommitted work, or unpushed commits.
 
 ## Feature memory
 
