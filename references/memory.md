@@ -1,62 +1,87 @@
-# Craft Memory — Path, Layout, Invariants
+# Craft memory
 
-Craft skills share one durable "memory" directory, the long-lived home for design specs and feature state. The writing skills (`brainstorm`, `implement`) read and write against this single location. This reference defines where it lives, what goes in it, and the invariants every skill must respect. Read this file once before any memory access in a session so both skills stay consistent.
+Craft memory holds design specs and one `overview.md` per feature. It lives outside the working tree, so every worktree of the project shares it and it never shows up in `git status`.
 
 ## Path
 
-Craft memory always lives at:
-
+```bash
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+MEMORY_ROOT="$HOME/.claude/projects/${PROJECT_ROOT//\//-}/craft/memory"
 ```
-$HOME/.claude/projects/<project-slug>/craft/memory/
-```
 
-- **`<project-slug>`** is the current project's absolute path with `/` replaced by `-`. For `/Users/alice/Projects/myriad` the slug is `-Users-alice-Projects-myriad`. Same encoding Claude Code uses for `~/.claude/projects/<slug>/*.jsonl` session logs and auto-memory.
-- **Derive the slug at runtime. Do not hardcode it.** Portable snippet:
-  ```bash
-  PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-  PROJECT_SLUG="${PROJECT_ROOT//\//-}"
-  MEMORY_ROOT="$HOME/.claude/projects/${PROJECT_SLUG}/craft/memory"
-  ```
-- The memory directory may not exist yet. Any skill that writes to memory must `mkdir -p` the target subdirectory (`specs/`, `features/<slug>/changes/`) before writing.
-
-## Why outside the working tree
-
-Memory deliberately lives outside the git working tree. Three reasons:
-
-1. **Worktree sharing.** Git worktrees each have their own working tree; files inside the tree don't sync across them. Memory outside the tree is one canonical location every worktree reads and writes.
-2. **No git pollution.** Specs and brainstorming artifacts are personal one-question-at-a-time dialogues, not team-shareable material. Keeping them out of the tree keeps `git status` and PR diffs clean.
-3. **Sibling to auto-memory.** `~/.claude/projects/<slug>/memory/` is Claude Code's built-in per-project memory. `~/.claude/projects/<slug>/craft/memory/` is craft's equivalent. Same conceptual category, same parent tree.
+Derive it at runtime, next to Claude Code's own `~/.claude/projects/<slug>/memory/`. Create a folder with `mkdir -p` before the first write.
 
 ## Layout
 
 ```
 <memory-root>/
-├── specs/                                  # dated design specs from craft:brainstorm
-│   └── YYYY-MM-DD-<topic>-design.md        # immutable; never edit in place
-└── features/                               # per-feature memory, nested up to 2 levels
-    └── <top-level>/                        # a product domain; hub when it has sub-feature dirs
-        ├── overview.md                     # the hub's own overview (mostly Related Features links)
-        ├── <sub-feature>/                  # a leaf under this domain
-        │   ├── overview.md                 # always loaded; canonical decisions + Recent Changes index
-        │   └── changes/                    # leaf files, on-demand load
-        │       └── YYYY-MM-DD-<short-topic>.md
-        └── changes/  snapshots/            # a top-level feature with no sub-features is itself a leaf
+├── specs/YYYY-MM-DD-<topic>-design.md      # one per brainstorm, never edited after
+└── features/<feature>/overview.md          # a leaf, or a hub when it holds sub-features
+    └── <sub-feature>/overview.md           # at most two levels
 ```
 
-Feature slugs may be one segment (`horizon-scanning`) or two (`horizon-scanning/watchtower`); nesting is capped at 2. `snapshots/` is DEPRECATED (legacy read-only, never written). Throughout all craft SKILL.md files, `<memory-root>` refers to the path above. Hub-vs-leaf definition, file roles, read protocol, and write protocol live in [`feature-files.md`](feature-files.md).
+Earlier craft versions also wrote `changes/` and `snapshots/` folders. Craft no longer reads or writes them. Leave them on disk unless the user asks to delete them.
 
-## Invariants
+## Reading
 
-- **Specs are immutable.** Once written, never edit. If the design changes, write a new spec.
-- **`overview.md` is mutable with consolidation discipline.** `craft:brainstorm` and `craft:implement` (and the compaction audit they run at finish) may add, edit, merge, or remove entries when they spot duplicates or contradictions. Same auto-memory rule: do not write duplicates; update or remove outdated entries.
-- **`changes/*.md` are immutable once written.** New facts go in a new dated file. Same-day collision: append `b`, `c`, etc.
-- **`snapshots/*.md` are deprecated and read-only.** No new snapshots are written. Existing files remain on disk as legacy reference; do not edit, do not delete, do not migrate.
-- **Code is the source of truth.** When `overview.md`, a changes file, or a legacy snapshot disagrees with current code, fix the memory (consolidate via the compaction audit or write a new changes file) - do not "fix" the old file.
-- **Load the anchor first.** A new session on an existing feature reads `overview.md` always; changes files load on demand only when the index entry or current task references one. Legacy `snapshots/` is never default-loaded.
+- Read the feature's `overview.md` in full at the start of a session.
+- Open a spec only when `overview.md` or the user points at it.
+- Follow a Related Features link one level deep, and only when the task needs that feature.
 
-## What NOT to put in memory
+## overview.md
 
-- Implementation plan files — craft uses TodoWrite for planning, not on-disk plans.
-- Team-shareable architecture docs — those belong in the project's tracked `docs/` tree.
-- Session scratch notes or in-progress drafts.
-- Anything derivable from reading current code.
+It loads every session, so it holds only what outlives the code. Keep it under 5k characters.
+
+| Section | Holds |
+|---|---|
+| Product / Business | Why the feature exists, who it serves, scope set by stakeholders |
+| Architectural Invariants | Rules future code must keep |
+| External Constraints | Compliance, SLAs, contracts with other teams |
+| Related Features | `- <slug> - <the seam> [owns: <area>]`, a leaf linking up to its hub |
+| Recent Changes | `- YYYY-MM-DD: <topic> -> specs/<file>.md`, newest first, last 10 |
+
+A hub holds a one-line blurb and Related Features only.
+
+Rules for each line:
+
+- **Constraint, not description.** Ask: would the line need rewriting if the implementation changed tomorrow? If yes, drop it or reword it to the rule underneath. "Retention is set per plan, never per report" is a constraint. "Retention lives in the `plans` table" is a description.
+- **One fact per line**, under 200 characters, ending with `Source: specs/<file>.md`.
+- **The user confirms** every constraint line. Recent Changes is mechanical.
+- **No duplicates.** A new decision replaces the line it contradicts.
+- **The owner states it once.** A cross-cutting rule lives in the feature marked `owns:`, and the others link to it.
+
+Template:
+
+```markdown
+# <Feature> - Overview
+
+## Product / Business
+- <Constraint>. Source: specs/YYYY-MM-DD-<topic>-design.md
+
+## Architectural Invariants
+- <Constraint>. Source: specs/YYYY-MM-DD-<topic>-design.md
+
+## External Constraints
+- <Constraint>. Source: <spec or external doc>
+
+## Related Features
+- <hub> - domain index.
+
+## Recent Changes
+- YYYY-MM-DD: <topic> -> specs/YYYY-MM-DD-<topic>-design.md
+```
+
+## New features
+
+Place a new feature under the hub its code and topic belong to, or at the top level. Ask once when the placement is ambiguous, with your inferred answer.
+
+## Compaction
+
+When `overview.md` passes 4k characters, or a session spots duplicates or contradictions:
+
+1. Drop descriptions and anything the code answers.
+2. Merge duplicates and resolve contradictions against the current code.
+3. Fold any other section into the five above, or drop it.
+4. Shorten the survivors.
+
+Show changes in meaning to the user as a short diff and apply them on a yes. Rewording needs no confirmation.

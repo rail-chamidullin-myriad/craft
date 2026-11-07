@@ -1,151 +1,67 @@
 ---
 name: brainstorm
-description: Brainstorm a feature, architecture change, or refactor and produce a dated design spec. Use this whenever the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or is about to start any non-trivial feature, architecture change, or refactor, even if they don't explicitly say "brainstorm". Also use when deciding between two or more design directions. Collaborates by mapping open-ended problems as axes and option bundles before narrowing, asking one clarifying question at a time (with a recommended answer), proposing 2-3 approaches with trade-offs, presents the design in sections for incremental approval, and writes a dated spec. Does NOT implement; it ends by offering to hand off to craft:implement, in this session or a later one. Publishes Artifacts for UI mockups, diagrams, and visual A/B selection.
+description: Design companion for a feature, architecture change, or refactor. Briefs the user on how the area works today, what the request changes, and which decisions and gaps are open, then helps them decide through discussion, audits, comparisons, and mockups. Writes a dated design spec once the decisions settle. Use when the user says "brainstorm", "let's design X", "how should I build Y", "what's the best approach for Z", "should we use A or B", or starts a non-trivial feature, architecture change, or refactor.
 ---
 
 # Brainstorm (craft)
 
-Turn an idea into a fully formed design through natural collaborative dialogue, then write a dated spec.
+Help the user reach a design they trust. Brief them first, then follow their lead, and record the result as a spec.
 
-**Memory:** this skill reads and writes craft memory (specs, feature state, overview decisions). Path, layout, and invariants are defined once in the shared reference [`../../references/memory.md`](../../references/memory.md) — read it before any memory access. `<memory-root>` is used throughout this document to refer to the path defined there.
+Specs and feature overviews live in craft memory. Read [`../../references/memory.md`](../../references/memory.md) before you touch it.
 
-**Announce at start:** "I'm using the craft:brainstorm skill."
+## 1. Gather context
 
-**Principles:** DRY. YAGNI. KISS. One question at a time. Recommend, don't lecture.
+- Read the feature's `overview.md` when one exists. Say what you loaded and ask whether any of it is outdated.
+- Read the code the request touches, the project's `CLAUDE.md`, and its conventions. Settle anything the code can answer before you ask.
+- If the request spans independent subsystems, propose splitting it.
 
-**Writing for readers:** the design spec and everything you present in chat are read by a human. Write them plainly per [`../../references/writing-clarity.md`](../../references/writing-clarity.md). Internal memory files use the telegraphic [`../../references/writing-style.md`](../../references/writing-style.md) instead.
+## 2. Brief the user
 
-**Asking questions:** Ask when a decision genuinely needs the user's input - one question per turn, with your recommended answer. Skip anything you can verify from the code, `CLAUDE.md`, or repo conventions. Err on the side of fewer, higher-signal questions; brainstorming is a dialogue, not an interrogation.
+Open with a briefing, before any question:
 
-<HARD-GATE>
-Do NOT write code, scaffold, or invoke any implementation skill until the spec is written and the user has accepted an explicit offer to move to implementation. Approving a design section is not that acceptance. This skill always writes a spec; implementation may follow in the same session, but only once the user says so.
-</HARD-GATE>
+1. **Today:** how the area works now, with a short flow sketch.
+2. **The change:** what the request changes, in two or three sentences.
+3. **Decisions:** each open decision with its realistic options and your recommendation.
+4. **Gaps and risks:** edge cases, missing data, and conflicts with existing rules or `overview.md`.
 
-## The Process
+Example:
 
-### 1. Load prior context (if feature exists)
+```
+Today: reports expire after 30 days. A nightly job deletes them.
+  save -> storage (30-day expiry) -> nightly purge
+The change: paid users keep reports until they delete them.
+Decisions:
+  1. Where retention lives: per plan in billing (recommended, one rule) or a flag per report.
+  2. On downgrade: keep existing reports (recommended) or purge after a grace period.
+Gaps: no test covers the purge job. Two other services read the expiry date.
+```
 
-Before asking any design questions, follow the read protocol in [`../../references/feature-files.md`](../../references/feature-files.md): read `<memory-root>/features/<slug>/overview.md` (if it exists). Read `<memory-root>/features/<slug>/changes/*.md` only on demand — when an index entry in `overview.md` or the user's prompt plainly references a recent session. Do not default-read prior specs in `<memory-root>/specs/`, the `changes/` directory in bulk, or legacy `snapshots/*.md` — open one only if `overview.md` or a relevant changes file points at an unresolved question that lives there.
+## 3. Decide together
 
-Restate what you loaded to the user before proceeding. Ask whether any of it is outdated.
+Follow the user's lead. Pick whichever move helps the decision at hand:
 
-### 2. Explore the codebase before asking
+- **Discuss:** answer, go deeper on one decision, or ask questions. Ask independent questions together, each with a recommended answer.
+- **Audit:** when evidence beats opinion, check call sites, current behavior on real data, usage numbers, or how sibling code solves the same problem.
+- **Compare:** put two approaches side by side, or challenge an assumption, the user's included.
+- **Show:** when seeing beats reading, publish a mockup or diagram as an Artifact. Load the `artifact-design` skill first, and revise the same file so the URL stays.
 
-If a design question can be answered by reading the code, read the code. Don't ask the user things you can verify yourself. Check the project's `CLAUDE.md` and any project-specific convention files before asking anything that might already be a repo convention.
+Keep the design proportional to the problem. Follow existing patterns, and build only what the request needs.
 
-This discipline applies not only to clarifying questions to the user but also to items that would otherwise land in Open Questions. If a grep, file read, or command can resolve it, do that now - do not defer to the spec.
+## 4. Write the spec
 
-Before detailed questions, assess scope: if the request spans multiple independent subsystems, flag it and help decompose into sub-projects. Each sub-project gets its own spec later.
+When the main decisions settle, offer to write the spec. Before you write it, check it for `TBD`s, contradictions with `overview.md`, open questions the code can answer, and parts nobody asked for.
 
-### 3. Map the design space, then ask clarifying questions
+Write `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` from [`../../references/templates/spec.md`](../../references/templates/spec.md). A spec stays as written. A changed design gets a new spec that names the one it replaces.
 
-Match the opening move to the grain of the user's ask:
+Reply with the path and a recap of the key decisions in three to five bullets.
 
-- **A specific decision** ("should we use A or B?") — go straight to clarifying questions.
-- **An open problem** ("we need to rethink X", "how should this work?") — do NOT open with a narrow question; the user came to discover the options, and a pointed question just hands their problem back to them. First lay out the design space from your exploration: the independent axes the problem splits into, the realistic options on each axis, and 2-3 coherent bundles across the axes with trade-offs. Invite reactions — the user's picks and rejections replace a round of interrogation, and remaining questions target only the axes they left open.
+## 5. Update feature memory
 
-Then ask clarifying questions:
+1. Create the feature's `overview.md` if it is missing.
+2. Add the spec to its Recent Changes list.
+3. Propose constraint lines for decisions that outlive this change. Apply them when the user agrees.
+4. Compact `overview.md` if it is over budget.
 
-- One question per message. No bundled questions.
-- Prefer multiple choice when natural, open-ended when not.
-- Walk the decision tree depth-first: resolve a branch before moving to the next.
-- Focus on *decisions*, not trivia.
-- For each question, offer a recommended answer with a one-line rationale when you have one.
+## 6. Build it
 
-Probe briefly for the usual gaps when they seem load-bearing (error paths, empty input, partial failure, migration, auth, observability) but don't turn this into an interrogation. One focused question per gap, not a checklist.
-
-### 4. Propose 2-3 approaches
-
-Once the problem is clear, propose 2-3 approaches with trade-offs. Lead with your recommendation and explain why. If step 3 already presented bundles, refine the surviving ones instead of drafting a fresh list.
-
-### 5. Present the design
-
-Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced. Ask after each section whether it looks right. Cover: architecture, components, data flow, error handling, testing. Go back and clarify when something doesn't fit.
-
-**Design for isolation and clarity:** smaller, well-bounded units with clear interfaces. For each unit you should be able to answer what it does, how to use it, and what it depends on.
-
-**In existing codebases:** follow existing patterns. Include targeted cleanup only where it serves the current goal, no unrelated refactoring.
-
-### 6. Show visuals as Artifacts when the answer is visual
-
-<HARD-GATE>
-The visual channel is for **rendered visuals only** — mockups, wireframes, layouts, navigation structures, architecture diagrams, side-by-side design comparisons. If the answer is words — scope, tradeoffs, an approach A/B/C described in prose, any clarifying question — ask in the terminal. Never publish a page whose content is a list of text bullets; that is the terminal's job and an Artifact full of text options is worse than asking directly.
-
-A question *about* a UI topic is not automatically visual. The test is whether the user understands it better by **seeing** than **reading**: "what kind of wizard do you want?" is words (terminal); "which of these three wizard layouts feels right?" is visual (Artifact).
-</HARD-GATE>
-
-When a question clears that gate, just show it — no opt-in ceremony, no "want to try the browser?" preamble. Read `artifacts.md` in this skill directory for the full mechanics (writing the HTML, publishing, iterating on the same URL, applying the `artifact-design` skill for mockup quality). In short: write a self-contained mockup to your session scratchpad, publish it with the `Artifact` tool, link the URL, and have the user respond in the terminal. The URL persists, so it doubles as the approved-design reference a reviewer can open later.
-
-### 7. Self-check before writing
-
-Before writing the spec, scan for these issues (fix inline, no need to re-review):
-
-| Category | What to catch |
-|----------|--------------|
-| Completeness | `TBD`, `TODO`, "figure out later", or sections left blank |
-| Consistency | Decisions that contradict each other, or contradict `overview.md` |
-| Clarity | Requirements ambiguous enough that two readers would build different things |
-| Scope | Spec covers multiple independent subsystems - if so, split before writing |
-| YAGNI | Features the user didn't ask for, or abstractions with no current caller |
-| Simplicity | Would a senior engineer call this overcomplicated? If yes, cut until they wouldn't. |
-| Open Questions discipline | For each entry, ask "can I answer this by reading code or running a grep?" If yes, resolve inline and delete the entry. This section is not a deferral pile. |
-
-### 8. Write the spec
-
-Ensure the target directory exists (`mkdir -p <memory-root>/specs/`).
-
-Write to `<memory-root>/specs/YYYY-MM-DD-<topic>-design.md` using the template in [`../../references/templates/spec.md`](../../references/templates/spec.md).
-
-### 9. Confirm before handoff
-
-Do not ask the user to open the file. The spec typically lives outside the working tree (under the configured memory root) and is awkward to browse; more importantly, the user already saw and approved each section during step 5 — the written spec is the record, not a new deliverable for them to review.
-
-After writing, send a compact recap of the key decisions (3-5 bullets, drawn from what was already agreed) and ask:
-
-> "Spec written to `<path>`. Recap above — any corrections before we move to implementation?"
-
-If they request changes, apply them, re-run the self-check, and send a fresh recap. Proceed once they approve.
-
-### 10. Write feature memory at finish
-
-Mostly automatic. Brainstorm always produces a memorable artefact (the spec), so unlike implement there is no memorability skip — but brainstorm never writes `changes/*.md` (those are implement's territory). The spec file *is* the brainstorm session's record; this step just indexes it and proposes any canonical-decision diffs.
-
-Ensure `overview.md` exists before the indexing/diff steps below:
-
-- **Feature directory does not exist** → resolve placement first (see "Creating a new feature" in [`../../references/feature-files.md`](../../references/feature-files.md): infer top-level vs sub-feature of an existing hub, seed the uplink + any tight-seam Related Features), then create `<memory-root>/features/<slug>/` at the resolved path with an empty `overview.md` (the canonical sections present and empty, no Recent Changes section yet) and state the slug to the user.
-- **Directory exists but `overview.md` is missing** (legacy `snapshots/`-only layout, or a custom layout from an earlier flow) → create an empty `overview.md` and flag any `snapshots/` or non-canonical files to the user. Those files aren't auto-loaded under the current read protocol; do not import their content into the new `overview.md`. Constraints accumulate organically from this session forward, or the user can hand-curate from the snapshot if they want.
-
-**1. Append the spec to the Recent Changes index in `overview.md`.** Append at the top in the format `- YYYY-MM-DD: <short-topic> -> specs/YYYY-MM-DD-<short-topic>-design.md`. Trim to the last 10 entries. Mechanical, no judgment. Recent Changes entries can point at either a spec (brainstorm) or a changes file (implement); both share the same FIFO@10 index. If the section does not yet exist in this `overview.md`, create it.
-
-**2. Propose canonical-decision diffs.** Scan the session for decisions that fit one of `overview.md`'s three buckets (product/business rules, architectural invariants, external constraints) and apply across multiple surfaces or sessions — not page-specific layout choices. Each candidate must pass the constraint-vs-description test in [`../../references/overview.md`](../../references/overview.md): if the implementation flipped tomorrow, would the line need rewriting? Yes → it's a description; reword to the underlying constraint or skip. Then check `overview.md` for duplicates or contradictions per the consolidation discipline. Present the diff to the user as a short list ("appending these 2 lines under Product / Business; replacing this line because it now contradicts the new spec"). Apply on yes. Skip the question entirely if there are no candidates.
-
-**3. Compaction audit.** If `overview.md` is over 4k chars or `Recent Changes` exceeds 10 entries, run the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)): drop descriptions, dedupe, resolve contradictions, then compress surviving prose telegraphically. Substance changes go to the user as a diff; meaning-preserving rewrites are mechanical.
-
-**4. Hand off.** Report:
-- Path to the new spec file.
-- Any open questions still to resolve.
-- Offer to start `craft:implement` now, in this session, in from-spec mode. Wait for the user to accept.
-
-from-spec is the correct mode for a same-session handoff, not from-conversation. from-conversation derives the feature slug from the branch name and would create a sibling directory next to the one just indexed, and it carries an offer to switch back to `craft:brainstorm` for large scope that would fire circularly.
-
-If the user declines, stop. The spec stands as the record for a later session.
-
-## Red Flags
-
-| Thought | Reality |
-|---------|---------|
-| "Let me propose the full design in one message" | No. Sections, with approval between them. |
-| "I will ask all 12 questions at once" | No. Depth-first, one per turn. |
-| "The ask is open-ended, but a specific question will make progress" | No. Map the axes, options, and bundles first; narrow questions come after the user reacts to the landscape. |
-| "I will skip reading overview.md since I just had a session on this" | No. Read it. A new session has no memory. |
-| "I will start implementing because the user said yes once" | No. Yes to a design section is not yes to implementing. The spec gets written first, then you offer. |
-| "This task is small, so I'll skip the spec" | No. The spec is always written. It costs seconds and it survives the session. |
-| "I'll publish an Artifact for this question" | Only if the content is a rendered visual. A page of text options is worse than asking in the terminal. |
-| "The spec is a summary of what we discussed" | No. The spec captures decisions + rationale + open questions, not a chat transcript. |
-| "I'll note this as an open question and let implementation resolve it" | No. If a grep or file read answers it, run the grep or read the file now. Open Questions is for items only the user can decide or that genuinely need implementation-time context. |
-
-## Integration
-
-- Pairs with `craft:implement` (reads the spec and implements it, in this session or a later one; auto-creates feature memory if needed and writes a per-session `changes/*.md` at finish).
-- Runs the compaction audit ([`../../references/compaction.md`](../../references/compaction.md)) at finish when `overview.md` drifts over budget; there is no standalone compaction skill.
-- Writes to feature memory at finish (step 10): appends the spec to the `Recent Changes` index in `overview.md` and proposes canonical-decision diffs. Never writes `changes/*.md` - the spec under `<memory-root>/specs/` is the brainstorm session's record.
+When you build the design in this session, check each success criterion in the spec, and propose an `overview.md` update if a lasting decision changed.

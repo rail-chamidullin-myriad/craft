@@ -2,6 +2,19 @@
 
 All notable changes to this plugin are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.0] - 2026-11-07
+
+### Removed
+- **`craft:implement`.** Current models already build well from a spec, and the skill's commit, worktree, and lint rules competed with each project's own `CLAUDE.md`. Brainstorm keeps one line for a build in the same session: check the spec's success criteria, and propose an `overview.md` update if a lasting decision changed.
+- **`changes/*.md` feature memory.** Feature memory is now the specs plus `overview.md`, and the Recent Changes list points at specs only. Existing `changes/` and `snapshots/` folders stay on disk, and craft no longer reads or writes them.
+- **`references/feature-files.md`, `overview.md`, `compaction.md`, `templates/changes.md`, and `skills/brainstorm/artifacts.md`.** `references/memory.md` now holds the memory rules in one page, and brainstorm points at the `artifact-design` skill for mockups.
+- **`references/writing-clarity.md` and `references/writing-style.md`.** The host project's writing rules govern specs, chat, and `overview.md` lines. The one-fact-per-line, 200-character, and 5k-character limits in `memory.md` keep overviews short.
+
+### Changed
+- **`craft:brainstorm` is a design companion instead of a fixed interview.** It opens with a briefing: how the area works today, what the request changes, the open decisions with a recommendation each, and the gaps and risks. Then it follows the user's lead with discussion, audits, comparisons, and mockups, and offers the spec once the decisions settle. The hard gates and the red-flags table are gone.
+- **The spec template follows the briefing:** Today, Change, Design, Scenarios, Decisions, Success criteria, Open questions, Out of scope.
+- **`craft:worktree-cleanup` finds everything safe to delete in one pass.** A branch counts as safe when a remote branch or a pull request head contains its tip, or when a remote commit holds the content of every file it changed, which covers squash merges and rebases. A worktree also needs no uncommitted changes, no ignored files of value such as Terraform state, and no live lock or activity in the last hour. The skill saves a restore list before deleting and re-checks each worktree right before removing it. It finds the default branch instead of assuming `master`.
+
 ## [0.24.0] - 2026-09-11
 
 ### Changed

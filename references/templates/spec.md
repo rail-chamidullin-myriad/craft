@@ -1,27 +1,32 @@
 # <Topic> - Design (YYYY-MM-DD)
 
-**Feature slug:** <slug> (if part of a larger feature)
-**Status:** design
-**Replaces:** specs/YYYY-MM-DD-<topic>-design.md (if superseding an earlier spec)
+**Feature:** <slug>
+**Replaces:** specs/YYYY-MM-DD-<topic>-design.md (omit when it replaces nothing)
 
-## Context
-Why are we doing this? What problem does it solve? What is the current state?
+## Today
+How the area works now. Add a short flow sketch when it helps.
 
-## Goal
-One paragraph. What does "done" look like?
-
-## Success Criteria
-Verifiable checks that prove the design was implemented correctly. Each item should be something an implementer (or test) can confirm - not vague aspirations. Examples: "endpoint returns 404 for unknown IDs", "page loads in under 200ms on dev hardware", "feature flag X gates the new path". Implementation verifies against this list.
+## Change
+What changes and why, in two or three sentences.
 
 ## Design
-Architecture, key components, interfaces, data flow. Link any mockups or diagrams published as Artifacts during brainstorming.
+The flow after the change, and each new or changed module with its responsibility in one line. Link any mockups published as Artifacts.
 
-## Decisions Made
+## Scenarios
+| Scenario | Today | After |
+|---|---|---|
+| <concrete case> | <behavior> | <behavior> |
+
+Omit the table when behavior does not change.
+
+## Decisions
 - Chose A over B because ...
-- Chose C because ...
 
-## Open Questions
-- Items only the user can decide, or items that genuinely need implementation-time context (you will know more after writing code). Do NOT use this section for anything a grep, file read, or command could answer now - resolve those before writing the spec. If every entry reads "grep for X" or "check if Y exists", you shipped the spec too early. If nothing genuinely open remains, write "None." and move on.
+## Success criteria
+Checks a test or a reviewer can confirm, such as "the endpoint returns 404 for an unknown id".
 
-## Out of Scope
-- What this spec deliberately does NOT cover.
+## Open questions
+Only what the user must decide or what implementation must reveal. Write "None." when nothing is open.
+
+## Out of scope
+- What this design deliberately leaves out.

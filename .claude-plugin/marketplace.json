@@ -1,14 +1,14 @@
 {
   "$schema": "https://code.claude.com/schemas/marketplace.json",
   "name": "craft",
-  "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
+  "description": "Disciplined, spec-driven software development skills: design brainstorming, feature memory, and worktree cleanup.",
   "owner": {
     "name": "Rail Chamidullin"
   },
   "plugins": [
     {
       "name": "craft",
-      "description": "Disciplined, spec-driven software development skills: brainstorming and implementation.",
+      "description": "Disciplined, spec-driven software development skills: design brainstorming, feature memory, and worktree cleanup.",
       "source": "./",
       "category": "development"
     }

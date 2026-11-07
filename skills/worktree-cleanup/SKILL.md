@@ -1,71 +1,70 @@
 ---
 name: worktree-cleanup
-description: Audit and clean up stale local git worktrees and branches safely. Use when the user says "clean up worktrees", "clean up branches", "prune worktrees", "remove merged branches", "worktree cleanup", or asks to tidy a repo with many worktrees or branches. Audits first and shows a summary before removing anything. Removes only worktrees whose branch is merged or whose remote branch is gone (and, on request, unmerged worktrees that are clean and fully pushed). Never touches locked worktrees, uncommitted work, or unpushed commits.
+description: Remove every local git worktree and branch whose work already exists on the remote, in one pass, and keep everything else. Checks merged branches, remote branches, pull request heads, and squashed or rebased copies, plus uncommitted, ignored, and live work in worktrees. Shows the plan, waits for a go-ahead, saves a restore list, then deletes. Use when the user says "clean up worktrees", "clean up branches", "prune worktrees", "remove merged branches", "worktree cleanup", or asks to tidy a repo with many worktrees or branches.
 ---
 
 # Worktree cleanup (craft)
 
-Remove stale local worktrees and branches without destroying work. Audit first, get a go-ahead, then delete in small batches.
+Delete every worktree and local branch that is safe to remove, and nothing else. Work is safe when it exists on the remote. Run every check below in the first pass, so the user never has to ask whether more can go.
 
-**Announce at start:** "I'm using the craft:worktree-cleanup skill."
+## 1. Refresh what the remote has
 
-**Principle:** deletion is destructive and other Claude sessions may be using worktrees live. Show the audit, wait for "go ahead", never remove a worktree with real work or a branch with unpushed commits.
+- Fetch with `--prune`, and find the default branch from `origin/HEAD`.
+- Fetch pull request heads into a temporary ref namespace when the host publishes them. Delete that namespace at the end.
 
-## 1. Audit (read-only) and show a summary
+  ```bash
+  git fetch --prune origin
+  git fetch origin '+refs/pull/*/head:refs/craft-cleanup/pull/*'            # GitHub
+  git fetch origin '+refs/merge-requests/*/head:refs/craft-cleanup/mr/*'    # GitLab
+  ```
 
-Run these and present counts before deleting anything:
+- A repo without a remote can only treat branches merged into the default branch as safe.
 
-```bash
-git worktree list                       # all worktrees; note "locked" ones
-git branch --show-current               # never delete this
-git branch --merged master | grep -vx master           # merged branches
-git branch -vv | grep ': gone]'                          # remote branch deleted (PR landed)
+## 2. Classify each local branch
+
+A branch is safe when the first test that passes says so:
+
+1. **Its tip is on the remote.** The default branch, a remote branch, or a pull request head contains the tip.
+
+   ```bash
+   git for-each-ref --contains <branch> refs/remotes refs/craft-cleanup --count=1
+   ```
+
+2. **Its content is on the remote.** Squash merges and rebases leave a tip no remote ref contains. Compare each file the branch changes since its merge base with the default branch. The file is covered when a remote commit holds the same content, or holds every line the branch added and none it removed.
+
+Everything else holds unique work and stays. Never delete the default branch or a branch a worktree has checked out, unless that worktree goes too.
+
+## 3. Classify each worktree
+
+A worktree is safe to remove when all of these hold:
+
+- Its branch or detached commit is safe per step 2.
+- It has no uncommitted or untracked changes. Sparse-checkout phantom deletions (` D` lines) do not count.
+- It holds no ignored files of value. Dependency and build output, such as `node_modules/` or `.venv/`, does not count, and neither do copies identical to the main checkout's. A Terraform state file, an IDE config, or local notes do count.
+- It is not in use. A lock whose process id is alive, or a commit or file change in the last hour, means another session may be working there. A lock whose process is dead does not count.
+
+Keep the main checkout and any worktree outside the repo's worktree folder, such as another tool's checkout.
+
+## 4. Show the plan and wait
+
+Show counts, then each group with its reason: worktrees to remove, branches to delete by the test that cleared them, and what stays by why. Wait for the user's go-ahead.
+
+Example:
+
+```
+Remove 9 worktrees: 5 merged, 4 fully pushed with open PRs.
+Delete 41 branches: 12 merged, 20 on a remote branch, 6 match a PR head, 3 squash-merged.
+Keep 7 worktrees: 3 live sessions, 2 uncommitted changes, 1 Terraform state, 1 active in the last hour.
+Keep 18 branches: lines found nowhere on the remote.
 ```
 
-Classify:
-- **Deletable branches** = merged into master OR gone-upstream, AND not checked out in any worktree.
-- **Removable worktrees** = branch merged or gone, AND working tree clean, AND not locked by a live session.
-- **Keep** = live-locked, unmerged with work, or anything with uncommitted/unpushed changes.
+## 5. Delete
 
-**Live vs stale lock.** A lock is not proof of a running session; it can be left behind by a crashed one. The lock reason carries `pid <N> start <date>`. If that pid is dead, the lock is stale and the worktree follows the normal gate:
+1. Save each branch name and commit to `$(git rev-parse --git-common-dir)/craft-cleanup/YYYY-MM-DD.txt`. Any entry restores with `git branch <name> <sha>` until git collects it.
+2. Re-check each worktree right before removing it. Another session may have started work since the audit.
+3. Remove worktrees a few at a time, since large checkouts are heavy on disk.
+4. Delete the branches, then run `git worktree prune` and delete the temporary refs.
 
-```bash
-git worktree list --porcelain | grep -A1 '^worktree' | grep locked   # read the pid in each reason
-kill -0 <pid> 2>/dev/null && echo live || echo stale                  # stale = safe to consider
-```
+## 6. Report
 
-Unlock a stale one before removing: `git worktree unlock <path>` (or `git worktree remove --force` handles it). When a lock has no pid, or you cannot tell, treat it as live and keep it.
-
-## 2. Clean-detection: ignore sparse-checkout phantoms
-
-Worktrees using sparse-checkout show thousands of phantom ` D` (deleted) entries in `git status` that are NOT real work. Real work is `M`, `A`, `R`, or `??` lines only. A worktree is clean when it has no such lines:
-
-```bash
-git -C <worktree> status --porcelain | grep -vE '^( D|D )' | grep .   # empty output = clean
-```
-
-## 3. Remove, in small batches of 3
-
-Full checkouts (node_modules, .venv) are hundreds of thousands of files, so removal is heavy disk I/O. Go strictly sequential, 3 at a time, to keep load flat:
-
-```bash
-git worktree remove --force <path>   # --force needed because sparse phantoms read as dirty
-git branch -D <branch>               # then delete its branch
-```
-
-For free branches not held by any worktree: `git branch -d` for merged, `git branch -D` for gone-upstream. Finish with `git worktree prune`.
-
-If a removal fails with "Operation not permitted", the sandbox is blocking writes to `.git` and the worktree dir. Retry that command with the sandbox disabled (in Claude Code, `dangerouslyDisableSandbox: true`).
-
-## 4. Optional second pass: unmerged worktrees (opt-in only)
-
-Only when the user explicitly asks to also drop unmerged worktrees. Stricter gate, all three required:
-- **Not live-locked** (stale locks OK, see step 1).
-- **Clean working tree** (step 2).
-- **Fully pushed** - the branch exists on the remote at the same or an older SHA, so a session can recreate the worktree later with nothing lost:
-
-```bash
-git rev-list --count @{upstream}..<branch>   # 0 = fully pushed; no upstream or >0 = KEEP
-```
-
-Never drop a worktree with unpushed commits or uncommitted work, and never one that is live-locked.
+Report what went, what stayed by reason, and the restore file. Offer to show the unique lines in kept branches, so the user can judge whether they are abandoned drafts.
